@@ -678,7 +678,9 @@ let artworkImages = {};
 
 function preload() {
   artworkImages.basquiat = loadImage('basquiat.png', () => {}, () => {});
-  artworkImages.rothko = loadImage('rothko.png', () => {}, () => {});
+  artworkImages.rothko = loadImage('No._6_(Violet,_Green_and_Red).jpg', () => {}, () => {
+    artworkImages.rothko = loadImage('rothko.png', () => {}, () => {});
+  });
   artworkImages.hirst = loadImage('hirst.png', () => {}, () => {});
   artworkImages.klimt = loadImage('Gustav_Klimt_Bildnis_der_Elisabeth_Lederer.jpg', () => {}, () => {
     artworkImages.klimt = loadImage('klimt.png', () => {}, () => {});
@@ -2937,9 +2939,6 @@ function switchArtwork(artworkKey) {
   const frameWrapper = document.getElementById('art-frame');
   frameWrapper.className = 'art-frame-wrapper frame-' + activeArtwork;
   
-  // Set default milestone index and rebuild timeline snapshots
-  activeMilestoneIndex = 0; // Default to 'Pristine'
-  
   // Clear other environment states to force fresh initialization for the new artwork
   environmentStates = {
     freeport: null,
@@ -2948,8 +2947,12 @@ function switchArtwork(artworkKey) {
     catastrophe: null
   };
   
+  // Force a clean environment load for the active cycle, which will pre-generate all physics snapshots!
+  loadEnvironmentState(activeCycle);
+  
+  // Re-render timeline snapshots HUD panel and sync colors
   renderTimelineSnapshots();
-  resetSimulation();
+  updateLegendColors();
 }
 
 function switchLifeCycle(cycleKey) {
@@ -3057,22 +3060,8 @@ function initFreshEnvironmentState() {
   liveSimulatedFrames = 0;
   simulatedFrames = 0;
   
-  resetGridToPristine();
-  
-  artworkSnapshots = [];
-  artworkSnapshots[0] = deepCopyGrid(forceGrid);
-  artworkSnapshots[0].unlocked = true;
-  artworkSnapshots[0].isCapturedFromLive = false;
-  
-  const list = milestones[activeArtwork][activeCycle];
-  for (let idx = 1; idx < list.length; idx++) {
-    artworkSnapshots[idx] = deepCopyGrid(forceGrid);
-    artworkSnapshots[idx].unlocked = false;
-    artworkSnapshots[idx].isCapturedFromLive = false;
-  }
-  
-  activeMilestoneIndex = 0;
-  isViewingSnapshot = false;
+  // Re-generate authentic, physics-based snapshots for this situation and load the Pristine baseline state
+  generatePhysicsSnapshots();
 }
 
 function setRenderMode(mode, targetBtn) {
