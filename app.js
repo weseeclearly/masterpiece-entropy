@@ -1616,60 +1616,67 @@ function renderRadarGrid() {
             }
           }
         } else if (activeArtwork === 'klimt') {
-          let dx = x - cols / 2;
-          let dy = y - rows / 2;
-          
-          // Standing figure in the center
-          let isHair = (Math.abs(dx) < 8 && dy < -rows * 0.28 && dy > -rows * 0.42);
-          let isHead = (Math.abs(dx) < 6 && dy < -rows * 0.25 && dy > -rows * 0.38);
-          let isBody = (Math.abs(dx) < 14 && dy >= -rows * 0.25);
-          
-          if (isHair) {
-            rGhost = 45; gGhost = 30; bGhost = 20; // dark hair
-          } else if (isHead) {
-            rGhost = 245; gGhost = 205; bGhost = 185; // glowing skin tones
-          } else if (isBody) {
-            // Flowing silk gown white base
-            rGhost = 240; gGhost = 238; bGhost = 232;
-            
-            // Soft vertical painterly folds using Perlin noise
-            let foldNoise = noise(x * 0.08, y * 0.03);
-            let foldShade = map(foldNoise, 0.3, 0.7, -25, 25);
-            rGhost += foldShade;
-            gGhost += foldShade;
-            bGhost += foldShade;
-            
-            // Gorgeous organic Klimt-style decorative spiral motifs and soft vertical stripe patterns
-            let patternNoise = noise(x * 0.12, y * 0.12);
-            let stripeNoise = noise(x * 0.06);
-            
-            // Soft vertical decorative bands (delicate gray-blue/sage)
-            if (stripeNoise > 0.58 && Math.abs(dx) > 2) {
-              rGhost = lerp(rGhost, 85, 0.55);
-              gGhost = lerp(gGhost, 110, 0.55);
-              bGhost = lerp(bGhost, 100, 0.55); // beautiful sage-blue stripe
-            }
-            
-            // Elegant painterly golden spirals on her gown using smooth threshold noise
-            if (patternNoise > 0.65) {
-              rGhost = 212; gGhost = 175; bGhost = 55; // Klimt gold ornament
-              // Add metallic relief shading
-              if (noise(x * 0.3, y * 0.3) > 0.55) {
-                rGhost = 160; gGhost = 120; bGhost = 30;
-              }
-            }
+          let img = artworkImages.klimt;
+          if (img && img.width > 10) {
+            rGhost = cell.origR;
+            gGhost = cell.origG;
+            bGhost = cell.origB;
           } else {
-            // Red-coral background
-            rGhost = 140; gGhost = 35; bGhost = 30;
+            let dx = x - cols / 2;
+            let dy = y - rows / 2;
             
-            if (cell.isKlimtSilver) {
-              rGhost = 215; gGhost = 215; bGhost = 225; // reflective silver leaf
-            } else if (cell.isKlimtGold) {
-              rGhost = 220; gGhost = 165; bGhost = 30; // shimmering gold leaf
-              // Organic, hand-crafted gold leaf texture and soft spiral shading
-              let goldTexture = noise(x * 0.2, y * 0.2);
-              if (goldTexture > 0.58) {
-                rGhost = 175; gGhost = 115; bGhost = 10; // warm gold relief shadows
+            // Standing figure in the center
+            let isHair = (Math.abs(dx) < 8 && dy < -rows * 0.28 && dy > -rows * 0.42);
+            let isHead = (Math.abs(dx) < 6 && dy < -rows * 0.25 && dy > -rows * 0.38);
+            let isBody = (Math.abs(dx) < 14 && dy >= -rows * 0.25);
+            
+            if (isHair) {
+              rGhost = 45; gGhost = 30; bGhost = 20; // dark hair
+            } else if (isHead) {
+              rGhost = 245; gGhost = 205; bGhost = 185; // glowing skin tones
+            } else if (isBody) {
+              // Flowing silk gown white base
+              rGhost = 240; gGhost = 238; bGhost = 232;
+              
+              // Soft vertical painterly folds using Perlin noise
+              let foldNoise = noise(x * 0.08, y * 0.03);
+              let foldShade = map(foldNoise, 0.3, 0.7, -25, 25);
+              rGhost += foldShade;
+              gGhost += foldShade;
+              bGhost += foldShade;
+              
+              // Gorgeous organic Klimt-style decorative spiral motifs and soft vertical stripe patterns
+              let patternNoise = noise(x * 0.12, y * 0.12);
+              let stripeNoise = noise(x * 0.06);
+              
+              // Soft vertical decorative bands (delicate gray-blue/sage)
+              if (stripeNoise > 0.58 && Math.abs(dx) > 2) {
+                rGhost = lerp(rGhost, 85, 0.55);
+                gGhost = lerp(gGhost, 110, 0.55);
+                bGhost = lerp(bGhost, 100, 0.55); // beautiful sage-blue stripe
+              }
+              
+              // Elegant painterly golden spirals on her gown using smooth threshold noise
+              if (patternNoise > 0.65) {
+                rGhost = 212; gGhost = 175; bGhost = 55; // Klimt gold ornament
+                // Add metallic relief shading
+                if (noise(x * 0.3, y * 0.3) > 0.55) {
+                  rGhost = 160; gGhost = 120; bGhost = 30;
+                }
+              }
+            } else {
+              // Red-coral background
+              rGhost = 140; gGhost = 35; bGhost = 30;
+              
+              if (cell.isKlimtSilver) {
+                rGhost = 215; gGhost = 215; bGhost = 225; // reflective silver leaf
+              } else if (cell.isKlimtGold) {
+                rGhost = 220; gGhost = 165; bGhost = 30; // shimmering gold leaf
+                // Organic, hand-crafted gold leaf texture and soft spiral shading
+                let goldTexture = noise(x * 0.2, y * 0.2);
+                if (goldTexture > 0.58) {
+                  rGhost = 175; gGhost = 115; bGhost = 10; // warm gold relief shadows
+                }
               }
             }
           }
