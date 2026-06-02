@@ -83,7 +83,7 @@ const substrates = {
     canvasWidth: 340,
     canvasHeight: 480,
     paintedYear: 1916,
-    notes: "Genuine silver, gold, and platinum leaf layered over highly hygroscopic calcium carbonate gesso ground (E = 4.5 GPa). Ambient sulfur drives rapid sulfidation of silver leaf coordinates (flat dark gray Ag_2S), while relative humidity fluctuations generate massive shear stresses at the metal-ground boundary, flaking foil. Mobile lead fatty acid soaps bubble through foil."
+    notes: "Elisabeth Lederer's portrait is painted with rich oil glazes and impasto over a chalk gesso ground. Unlike Klimt's Golden Phase, it features no metallic foils. Bright yellow ornaments are synthetic chrome yellow (lead chromate), which darkens under UV light (photo-reduction to green Cr(III)). Gown whites are basic lead white, reacting with linseed oil fatty acids to form migrating crystalline lead soaps."
   },
   pollock: {
     name: "Number 7A, 1948",
@@ -220,32 +220,32 @@ const milestones = {
   },
   klimt: {
     freeport: [
-      { elapsed: 0, year: 1916, label: "Gilded Splendor", age: "0y", status: "STABLE", desc: "Highly reflective gold, silver, and platinum foil shimmering over calcium carbonate gesso." },
-      { elapsed: 100, year: 2016, label: "Tarnish Seeds", age: "100y", status: "EARLY SULFIDE", desc: "Trace sulfur in Freeport vault drives slow silver leaf sulfidation, forming thin Ag2S seeds." },
-      { elapsed: 300, year: 2216, label: "Blackened Veins", age: "300y", status: "STEADY TARNISH", desc: "Silver sulfide seeds merge into dark veins traversing the silver and gold boundaries." },
-      { elapsed: 600, year: 2516, label: "Lead Soap Bubbles", age: "600y", status: "ADVANCED SOAPS", desc: "Mobile lead soaps slowly bubble and erupt through genuine foil layers, forming amber craters." },
-      { elapsed: 1000, year: 2916, label: "Gilded Decay", age: "1000y", status: "COLLAPSE", desc: "Gold and silver foil layers fully delaminate and flake, leaving a chalky gesso outline." }
+      { elapsed: 0, year: 1916, label: "Pristine Canvas", age: "0y", status: "STABLE", desc: "Vibrant yellow details and crisp lead white gown over a fresh chalk gesso ground." },
+      { elapsed: 100, year: 2016, label: "UV Reduction", age: "100y", status: "EARLY DARKENING", desc: "Slow UV exposure initiates photo-reduction of chrome yellow paint, forming dark green Cr(III) seeds." },
+      { elapsed: 300, year: 2216, label: "Chrome Browning", age: "300y", status: "STEADY DARKENING", desc: "Reduced chromium compounds merge into dark brownish-green paths across the yellow details." },
+      { elapsed: 600, year: 2516, label: "Lead Soap Eruption", age: "600y", status: "ADVANCED SOAPS", desc: "Linseed oil fatty acids react with lead white in the gown, erupting as amber saponified soaps." },
+      { elapsed: 1000, year: 2916, label: "Craquelure Shatter", age: "1000y", status: "COLLAPSE", desc: "Severe canvas shrinkage shatters the brittle oil paint layers into a network of dry, flaking cracks." }
     ],
     penthouse: [
-      { elapsed: 0, year: 1916, label: "Gilded Splendor", age: "0y", status: "STABLE", desc: "Highly reflective gold, silver, and platinum foil shimmering over a hygroscopic chalk gesso ground." },
-      { elapsed: 30, year: 1946, label: "Tarnish Seeds", age: "30y", status: "EARLY SULFIDE", desc: "Atmospheric sulfur drives initial silver sulfidation, forming thin dark silver sulfide (Ag2S) seeds." },
-      { elapsed: 110, year: 2026, label: "Gold Flaking", age: "110y", status: "TODAY", desc: "Silver sulfidation darkens into black veins. Moisture cycles generate shear stresses, peeling gold foil borders." },
-      { elapsed: 200, year: 2116, label: "Soap Eruption", age: "200y", status: "ADVANCED", desc: "Mobile lead soaps bubble through gold leaf layers, creating eruptive amber crystallization craters." },
-      { elapsed: 400, year: 2316, label: "Metallic Death", age: "400y", status: "COLLAPSE", desc: "Complete gold delamination and tarnished silver decay, leaving a bare chalk gesso outline." }
+      { elapsed: 0, year: 1916, label: "Pristine Canvas", age: "0y", status: "STABLE", desc: "Vibrant yellow details and crisp lead white gown over a fresh chalk gesso ground." },
+      { elapsed: 30, year: 1946, label: "UV Reduction", age: "30y", status: "EARLY DARKENING", desc: "High penthouse UV levels initiate rapid photo-reduction of chrome yellow to green Cr(III) oxides." },
+      { elapsed: 110, year: 2026, label: "Chrome Browning", age: "110y", status: "TODAY", desc: "Once-vibrant yellows darken into dull brownish-green. Relative humidity cycles initiate craquelure cracks." },
+      { elapsed: 200, year: 2116, label: "Soap Eruption", age: "200y", status: "ADVANCED", desc: "Linseed oil fatty acids react with lead white in the gown, erupting as amber saponified soaps." },
+      { elapsed: 400, year: 2316, label: "Craquelure Shatter", age: "400y", status: "COLLAPSE", desc: "Severe canvas shrinkage shatters the brittle oil paint layers into dry, flaking cracked flakes." }
     ],
     museum: [
-      { elapsed: 0, year: 1916, label: "Gilded Splendor", age: "0y", status: "STABLE", desc: "Reflective foils are structurally stable inside standard cases." },
-      { elapsed: 40, year: 1956, label: "Foil Fatigue", age: "40y", status: "EARLY STRAIN", desc: "Continuous floor micro-vibrations stress the weak boundary between foil layers and gesso ground." },
-      { elapsed: 110, year: 2026, label: "Gesso Flaking", age: "110y", status: "TODAY", desc: "Vibration fatigue cracks the brittle chalk gesso ground, starting foil delamination at edges." },
-      { elapsed: 220, year: 2136, label: "Foil Shedding", age: "220y", status: "ADVANCED CRACKING", desc: "Foils delaminate and flake off in large sheets under persistent vibration waves." },
-      { elapsed: 500, year: 2416, label: "Chalky Skeleton", age: "500y", status: "COLLAPSE", desc: "All gold and silver foil is completely shed, leaving only the bare white chalky skeleton." }
+      { elapsed: 0, year: 1916, label: "Pristine Canvas", age: "0y", status: "STABLE", desc: "Yellow oil glaze and lead white gown stable in controlled vitrine atmosphere." },
+      { elapsed: 40, year: 1956, label: "Gesso Fatigue", age: "40y", status: "EARLY STRAIN", desc: "Continuous floor micro-vibrations stress the bond between the brittle oil paint and gesso ground." },
+      { elapsed: 110, year: 2026, label: "Craquelure Cracks", age: "110y", status: "TODAY", desc: "Vibration fatigue initiates diagonal cracks in the gesso, spreading into the paint layers." },
+      { elapsed: 220, year: 2136, label: "Paint Flaking", age: "220y", status: "ADVANCED CRACKING", desc: "Oil paint layers delaminate and flake off in small scales along stress lines under persistent vibrations." },
+      { elapsed: 500, year: 2416, label: "Chalky Skeleton", age: "500y", status: "COLLAPSE", desc: "All paint layers flake off, leaving only the bare white chalky skeleton of the gesso ground." }
     ],
     catastrophe: [
       { elapsed: 0, year: "+0h", label: "Pristine", age: "0h", status: "STABLE", desc: "Klimt masterpiece sealed in shipping container." },
-      { elapsed: 2, year: "+2h", label: "Corrosive Acid", age: "2h", status: "RAPID TARNISH", desc: "Ambient sulfur and humidity vapor blacken silver leaf coordinates in minutes." },
-      { elapsed: 6, year: "+6h", label: "Gesso Delamination", age: "6h", status: "MAJOR CRACKS", desc: "Hygroscopic gesso absorbs water, swelling rapidly and shattering gold foil layers." },
-      { elapsed: 12, year: "+12h", label: "Explosive Bubbles", age: "12h", status: "ACTIVE SOAPS", desc: "Extreme heat triggers explosive lead soap eruptions, tearing through the remaining foils." },
-      { elapsed: 24, year: "+24h", label: "Metallic Dissolution", age: "24h", status: "TOTAL DECAY", desc: "Gold delamination is complete; tarnished silver is entirely corroded and blackened." }
+      { elapsed: 2, year: "+2h", label: "Chrome Reduction", age: "2h", status: "RAPID DARKENING", desc: "Extreme UV radiation triggers rapid photo-reduction of chrome yellow, browning background details." },
+      { elapsed: 6, year: "+6h", label: "Gesso Delamination", age: "6h", status: "MAJOR CRACKS", desc: "Hygroscopic gesso ground swells from water ingress, shattering overlying oil layers." },
+      { elapsed: 12, year: "+12h", label: "Soap Eruption", age: "12h", status: "ACTIVE SOAPS", desc: "Extreme heat triggers rapid reaction between fatty acids and lead white, erupting soap bubbles." },
+      { elapsed: 24, year: "+24h", label: "Shattered Surface", age: "24h", status: "TOTAL DECAY", desc: "Complete mechanical flaking; paint layers are entirely cracked, darkened, and disintegrated." }
     ]
   },
   pollock: {
@@ -1300,17 +1300,17 @@ function configureSubstrateFields() {
               cell.isKlimtSilver = true;
               cell.stressLimit = 0.28;
               cell.chemSusceptibility = 0.99;
-              cell.materialType = 'Genuine Silver Leaf';
+              cell.materialType = 'Zinc White Oil Glaze';
             } else if (isGold) {
               cell.isKlimtGold = true;
               cell.stressLimit = 0.35;
-              cell.materialType = 'Byzantine Gold Leaf';
+              cell.materialType = 'Chrome Yellow Oil Glaze';
             } else if (isFlesh) {
               cell.materialType = 'Delicate Portrait Glaze';
               cell.chemSusceptibility = 0.3;
               cell.stressLimit = 0.85;
             } else if (isWhiteDress) {
-              cell.materialType = 'Flowing Silk Gown';
+              cell.materialType = 'Lead White Oil Impasto';
               cell.chemSusceptibility = 0.4;
               cell.stressLimit = 0.75;
             }
@@ -1543,7 +1543,7 @@ function configureSubstrateFields() {
             cell.stressLimit = 0.85;
             cell.origR = 185; cell.origG = 140; cell.origB = 25;
           } else if (isBody) {
-            cell.materialType = 'Flowing Silk Gown';
+            cell.materialType = 'Lead White Oil Impasto';
             cell.chemSusceptibility = 0.4;
             cell.stressLimit = 0.75;
             cell.origR = 230; cell.origG = 222; cell.origB = 202;
@@ -1555,14 +1555,14 @@ function configureSubstrateFields() {
               cell.isKlimtGold = true;
               cell.stressLimit = 0.35;
               cell.chemSusceptibility = 0.1;
-              cell.materialType = 'Byzantine Gold Leaf';
+              cell.materialType = 'Chrome Yellow Oil Glaze';
               cell.origR = 218; cell.origG = 165; cell.origB = 32;
             }
             if (cell.isKlimtGold && (x * y) % 17 < 3 && noise(x*0.1, y*0.1) > 0.45) {
               cell.isKlimtSilver = true;
               cell.stressLimit = 0.28;
               cell.chemSusceptibility = 0.99;
-              cell.materialType = 'Genuine Silver Leaf';
+              cell.materialType = 'Zinc White Oil Glaze';
               cell.origR = 192; cell.origG = 192; cell.origB = 192;
             }
           }
@@ -1865,9 +1865,9 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale
         }
       }
       else if (activeArtwork === 'klimt') {
-        // Klimt: lead soaps erupting circular amber nodes through gold foil under moisture
-        if (cell.isKlimtGold && cell.moistureSaturation > 0.35) {
-          cell.soapMigration += (cell.moistureSaturation * 0.001) * effectiveEnvScale;
+        // Klimt: lead white saponification (linseed oil acids reacting with basic lead carbonate)
+        if (cell.materialType.includes('Lead White') && cell.moistureSaturation > 0.35) {
+          cell.soapMigration += (cell.moistureSaturation * 0.0012) * effectiveEnvScale;
           cell.soapMigration = constrain(cell.soapMigration, 0.0, 1.0);
         }
       }
@@ -2625,15 +2625,26 @@ function renderRadarGrid() {
             let bR = lerp(colors.bleach[0] * 0.5, currentColors.bleach[0], spectralStainVal);
             let bG = lerp(colors.bleach[1] * 0.5, currentColors.bleach[1], spectralStainVal);
             let bB = lerp(colors.bleach[2] * 0.65, currentColors.bleach[2], spectralStainVal);
-            r = lerp(r, bR, aBleach);
-            g = lerp(g, bG, aBleach);
-            b = lerp(b, bB, aBleach);
-            
-            // If fully cooked, blend towards sun-bleached cream/white
-            if (fullyBleached > 0.94) {
-              r = lerp(r, 242, 0.7);
-              g = lerp(g, 240, 0.7);
-              b = lerp(b, 232, 0.7);
+
+            if (activeArtwork === 'klimt' && cell.isKlimtGold) {
+              // Chrome yellow photolytic browning (darkening to green-brown Cr(III) oxides)
+              let darkR = lerp(r, 85, aBleach);
+              let darkG = lerp(g, 75, aBleach);
+              let darkB = lerp(b, 45, aBleach);
+              r = lerp(darkR, bR, spectralStainVal);
+              g = lerp(darkG, bG, spectralStainVal);
+              b = lerp(darkB, bB, spectralStainVal);
+            } else {
+              r = lerp(r, bR, aBleach);
+              g = lerp(g, bG, aBleach);
+              b = lerp(b, bB, aBleach);
+              
+              // If fully cooked, blend towards sun-bleached cream/white
+              if (fullyBleached > 0.94) {
+                r = lerp(r, 242, 0.7);
+                g = lerp(g, 240, 0.7);
+                b = lerp(b, 232, 0.7);
+              }
             }
           }
           
