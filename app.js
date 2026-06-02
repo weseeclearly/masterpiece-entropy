@@ -146,6 +146,27 @@ let liveSimulationGrid = null; // Stores the active running simulation grid
 let liveSimulatedFrames = 0;   // Stores the active running simulation frames
 let isViewingSnapshot = false;  // Flag indicating if we are currently viewing a historical snapshot
 let spectralStainVal = 0.0; // 0.0 = forensic aging, 1.0 = bio-spectral heatmap
+let activeTheme = 'xray';   // 'xray' | 'naturalism'
+
+// Premium Theme Color Mappings for the Spectral Stain Mode (target colors at 100% stain)
+const themeColors = {
+  xray: {
+    moisture: [0, 240, 255],      // Neon cyan
+    uvFlux: [230, 0, 255],        // Neon purple/magenta
+    bleach: [0, 255, 127],        // Neon lime-green
+    sapon: [255, 110, 0],         // Volcanic orange
+    biological: [0, 255, 0],      // Bioluminescent green
+    stress: [255, 0, 127]         // Laser pink / hot pink
+  },
+  naturalism: {
+    moisture: [44, 95, 112],      // Organic sea-pine/cerulean blue
+    uvFlux: [235, 175, 55],       // Luminous golden-sunlight
+    bleach: [230, 222, 202],      // Warm alabaster/cream white
+    sapon: [160, 82, 45],         // Deep burnt sienna
+    biological: [107, 112, 92],   // Sage-green botanical creep
+    stress: [166, 75, 45]         // Earthy rust/clay crack network
+  }
+};
 
 
 // Force Grid Dimensions (Calculated dynamically to ensure zero sub-pixel aliasing)
@@ -271,6 +292,15 @@ function initUIElements() {
   document.getElementById('btn-toggle-time').addEventListener('click', toggleTimeScale);
   document.getElementById('btn-reset').addEventListener('click', resetSimulation);
   
+  // Visual Stain Theme selector listener
+  const selectTheme = document.getElementById('select-visual-theme');
+  if (selectTheme) {
+    selectTheme.addEventListener('change', (e) => {
+      activeTheme = e.target.value;
+      updateLegendColors();
+    });
+  }
+  
   // Spectral Stain visual mode slider
   const sliderStain = document.getElementById('slider-spectral-stain');
   const lblStain = document.getElementById('lbl-spectral-stain');
@@ -299,38 +329,40 @@ function updateLegendColors() {
   const dSapon = document.getElementById('legend-sapon');
   const dBio = document.getElementById('legend-biological');
   
+  const currentColors = themeColors[activeTheme] || themeColors.xray;
+  
   if (dStress) {
-    let r = Math.round(lerp(255, 255, spectralStainVal));
-    let g = Math.round(lerp(56, 0, spectralStainVal));
-    let b = Math.round(lerp(56, 127, spectralStainVal));
+    let r = Math.round(lerp(255, currentColors.stress[0], spectralStainVal));
+    let g = Math.round(lerp(56, currentColors.stress[1], spectralStainVal));
+    let b = Math.round(lerp(56, currentColors.stress[2], spectralStainVal));
     dStress.style.background = `rgb(${r}, ${g}, ${b})`;
     dStress.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dMoisture) {
-    let r = Math.round(lerp(30, 0, spectralStainVal));
-    let g = Math.round(lerp(144, 240, spectralStainVal));
-    let b = Math.round(lerp(255, 255, spectralStainVal));
+    let r = Math.round(lerp(30, currentColors.moisture[0], spectralStainVal));
+    let g = Math.round(lerp(144, currentColors.moisture[1], spectralStainVal));
+    let b = Math.round(lerp(255, currentColors.moisture[2], spectralStainVal));
     dMoisture.style.background = `rgb(${r}, ${g}, ${b})`;
     dMoisture.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dBleach) {
-    let r = Math.round(lerp(240, 0, spectralStainVal));
-    let g = Math.round(lerp(240, 255, spectralStainVal));
-    let b = Math.round(lerp(240, 127, spectralStainVal));
+    let r = Math.round(lerp(240, currentColors.bleach[0], spectralStainVal));
+    let g = Math.round(lerp(240, currentColors.bleach[1], spectralStainVal));
+    let b = Math.round(lerp(240, currentColors.bleach[2], spectralStainVal));
     dBleach.style.background = `rgb(${r}, ${g}, ${b})`;
     dBleach.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dSapon) {
-    let r = Math.round(lerp(212, 255, spectralStainVal));
-    let g = Math.round(lerp(175, 110, spectralStainVal));
-    let b = Math.round(lerp(55, 0, spectralStainVal));
+    let r = Math.round(lerp(212, currentColors.sapon[0], spectralStainVal));
+    let g = Math.round(lerp(175, currentColors.sapon[1], spectralStainVal));
+    let b = Math.round(lerp(55, currentColors.sapon[2], spectralStainVal));
     dSapon.style.background = `rgb(${r}, ${g}, ${b})`;
     dSapon.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dBio) {
-    let r = Math.round(lerp(46, 0, spectralStainVal));
-    let g = Math.round(lerp(204, 255, spectralStainVal));
-    let b = Math.round(lerp(113, 0, spectralStainVal));
+    let r = Math.round(lerp(46, currentColors.biological[0], spectralStainVal));
+    let g = Math.round(lerp(204, currentColors.biological[1], spectralStainVal));
+    let b = Math.round(lerp(113, currentColors.biological[2], spectralStainVal));
     dBio.style.background = `rgb(${r}, ${g}, ${b})`;
     dBio.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
@@ -1558,23 +1590,43 @@ function renderRadarGrid() {
           
           let intensity = (rGhost + gGhost + bGhost) / 3.0;
           
-          // Highly abstract, gorgeous bio-spectral thermal color ramp (confocal dye style!)
           let specR = 10, specG = 10, specB = 30;
-          if (intensity < 60) {
-            // Dark regions map to rich deep blues/indigo
-            specR = lerp(10, 80, intensity / 60);
-            specG = lerp(10, 0, intensity / 60);
-            specB = lerp(30, 240, intensity / 60);
-          } else if (intensity < 130) {
-            // Midtones map to vibrant neon green/cyan/magenta spectrum
-            specR = lerp(80, 0, (intensity - 60) / 70);
-            specG = lerp(0, 255, (intensity - 60) / 70);
-            specB = lerp(240, 150, (intensity - 60) / 70);
+          if (activeTheme === 'xray') {
+            // Highly abstract, gorgeous bio-spectral thermal color ramp (confocal dye style!)
+            if (intensity < 60) {
+              // Dark regions map to rich deep blues/indigo
+              specR = lerp(10, 80, intensity / 60);
+              specG = lerp(10, 0, intensity / 60);
+              specB = lerp(30, 240, intensity / 60);
+            } else if (intensity < 130) {
+              // Midtones map to vibrant neon green/cyan/magenta spectrum
+              specR = lerp(80, 0, (intensity - 60) / 70);
+              specG = lerp(0, 255, (intensity - 60) / 70);
+              specB = lerp(240, 150, (intensity - 60) / 70);
+            } else {
+              // Highlights map to electric yellow, fiery orange, and laser-pink
+              specR = lerp(0, 255, (intensity - 130) / 125);
+              specG = lerp(255, 120, (intensity - 130) / 125);
+              specB = lerp(150, 0, (intensity - 130) / 125);
+            }
           } else {
-            // Highlights map to electric yellow, fiery orange, and laser-pink
-            specR = lerp(0, 255, (intensity - 130) / 125);
-            specG = lerp(255, 120, (intensity - 130) / 125);
-            specB = lerp(150, 0, (intensity - 130) / 125);
+            // Naturalism theme color ramp (Umber/sienna shadows -> Sage-green -> Sienna clay -> Alabaster white)
+            if (intensity < 60) {
+              // Shadows: deep umber/sienna [25, 18, 14] shifting to sage-green [107, 112, 92]
+              specR = lerp(25, 107, intensity / 60);
+              specG = lerp(18, 112, intensity / 60);
+              specB = lerp(14, 92, intensity / 60);
+            } else if (intensity < 135) {
+              // Midtones: sage-green [107, 112, 92] shifting to sienna clay [160, 128, 85]
+              specR = lerp(107, 160, (intensity - 60) / 75);
+              specG = lerp(112, 128, (intensity - 60) / 75);
+              specB = lerp(92, 85, (intensity - 60) / 75);
+            } else {
+              // Highlights: sienna clay [160, 128, 85] shifting to alabaster white [230, 222, 202]
+              specR = lerp(160, 230, (intensity - 135) / 120);
+              specG = lerp(128, 222, (intensity - 135) / 120);
+              specB = lerp(85, 202, (intensity - 135) / 120);
+            }
           }
           
           rGhost = lerp(rGhost, specR, spectralStainVal);
@@ -1590,20 +1642,22 @@ function renderRadarGrid() {
           // ==================== UNIFIED VITRINE VIEW ====================
           // Non-Saturating Interpolated Layer Blending Stack
           
-          // Layer 1: Moisture Saturation overlay (Soft Auroral Cobalt Blue Glow)
+          const currentColors = themeColors[activeTheme] || themeColors.xray;
+          
+          // Layer 1: Moisture Saturation overlay (Soft Auroral Cobalt Blue Glow / Sea-pine)
           if (cell.moistureSaturation > 0.02) {
             let aMoist = cell.moistureSaturation * 0.45;
             let moistTide = 0.8 + 0.2 * Math.sin(frameCount * 0.012 + x * 0.06);
             aMoist *= moistTide;
-            let mR = lerp(colors.moisture[0] * 0.7, 0, spectralStainVal);
-            let mG = lerp(colors.moisture[1] * 0.7, 240, spectralStainVal);
-            let mB = lerp(colors.moisture[2], 255, spectralStainVal);
+            let mR = lerp(colors.moisture[0] * 0.7, currentColors.moisture[0], spectralStainVal);
+            let mG = lerp(colors.moisture[1] * 0.7, currentColors.moisture[1], spectralStainVal);
+            let mB = lerp(colors.moisture[2], currentColors.moisture[2], spectralStainVal);
             r = lerp(r, mR, aMoist);
             g = lerp(g, mG, aMoist);
             b = lerp(b, mB, aMoist);
           }
           
-          // Layer 2: Ambient Solar UV Flux (Rolling Indigo Aurora Borealis)
+          // Layer 2: Ambient Solar UV Flux (Rolling Indigo Aurora / Golden Sun-haze)
           let uvNoiseVal = noise(x * 0.08, y * 0.08, timeVal);
           let dx = (x - cols / 2) / (cols / 2);
           let dy = (y - rows / 3) / (rows / 3);
@@ -1619,9 +1673,9 @@ function renderRadarGrid() {
           
           if (fUV > 0.02) {
             let aUV = fUV * 0.75;
-            let uvR = lerp(colors.uvFlux[0], 230, spectralStainVal);
-            let uvG = lerp(colors.uvFlux[1], 0, spectralStainVal);
-            let uvB = lerp(colors.uvFlux[2], 255, spectralStainVal);
+            let uvR = lerp(colors.uvFlux[0], currentColors.uvFlux[0], spectralStainVal);
+            let uvG = lerp(colors.uvFlux[1], currentColors.uvFlux[1], spectralStainVal);
+            let uvB = lerp(colors.uvFlux[2], currentColors.uvFlux[2], spectralStainVal);
             r = lerp(r, uvR, aUV);
             g = lerp(g, uvG, aUV);
             b = lerp(b, uvB, aUV);
@@ -1636,9 +1690,9 @@ function renderRadarGrid() {
             let bleachBreathe = 0.85 + 0.15 * Math.sin(frameCount * 0.03 + y * 0.1);
             aBleach *= bleachBreathe;
             
-            let bR = lerp(colors.bleach[0] * 0.5, 0, spectralStainVal);
-            let bG = lerp(colors.bleach[1] * 0.5, 255, spectralStainVal);
-            let bB = lerp(colors.bleach[2] * 0.65, 127, spectralStainVal);
+            let bR = lerp(colors.bleach[0] * 0.5, currentColors.bleach[0], spectralStainVal);
+            let bG = lerp(colors.bleach[1] * 0.5, currentColors.bleach[1], spectralStainVal);
+            let bB = lerp(colors.bleach[2] * 0.65, currentColors.bleach[2], spectralStainVal);
             r = lerp(r, bR, aBleach);
             g = lerp(g, bG, aBleach);
             b = lerp(b, bB, aBleach);
@@ -1651,7 +1705,7 @@ function renderRadarGrid() {
             }
           }
           
-          // Layer 4: Saponification Soap migration nodes (Twinkling Gold-Amber Starfield)
+          // Layer 4: Saponification Soap migration nodes (Twinkling Gold-Amber / Sienna Starfield)
           if (cell.soapMigration > 0.02) {
             let fullyCooked = cell.soapMigration;
             let activity = 1.0 - fullyCooked;
@@ -1660,9 +1714,9 @@ function renderRadarGrid() {
             let soapTwinkle = 0.3 + 0.7 * noise(x * 0.8, y * 0.8, frameCount * 0.06) * activity;
             let aSoap = cell.soapMigration * 0.8 * (0.4 + 0.6 * soapTwinkle);
             
-            let sR = lerp(colors.sapon[0] * 0.6, 255, spectralStainVal);
-            let sG = lerp(colors.sapon[1] * 0.6, 110, spectralStainVal);
-            let sB = lerp(colors.sapon[2] * 0.15, 0, spectralStainVal);
+            let sR = lerp(colors.sapon[0] * 0.6, currentColors.sapon[0], spectralStainVal);
+            let sG = lerp(colors.sapon[1] * 0.6, currentColors.sapon[1], spectralStainVal);
+            let sB = lerp(colors.sapon[2] * 0.15, currentColors.sapon[2], spectralStainVal);
             r = lerp(r, sR, aSoap);
             g = lerp(g, sG, aSoap);
             b = lerp(b, sB, aSoap);
@@ -1674,7 +1728,7 @@ function renderRadarGrid() {
             }
           }
           
-          // Layer 5: Biological creep & efflorescence haze (Bioluminescent Pulse)
+          // Layer 5: Biological creep & efflorescence haze (Bioluminescent / Sage Pulse)
           if (cell.biologicalCreep > 0.02) {
             let fullyCooked = cell.biologicalCreep;
             let activity = 1.0 - fullyCooked;
@@ -1683,9 +1737,9 @@ function renderRadarGrid() {
             // Bioluminescent pulse fades as coordinates fully rot
             let aBio = cell.biologicalCreep * 0.85 * (0.5 + 0.5 * bioPulse * activity);
             
-            let bioR = lerp(colors.biological[0] * 0.15, 0, spectralStainVal);
-            let bioG = lerp(colors.biological[1] * 0.8, 255, spectralStainVal);
-            let bioB = lerp(colors.biological[2] * 0.6, 0, spectralStainVal);
+            let bioR = lerp(colors.biological[0] * 0.15, currentColors.biological[0], spectralStainVal);
+            let bioG = lerp(colors.biological[1] * 0.8, currentColors.biological[1], spectralStainVal);
+            let bioB = lerp(colors.biological[2] * 0.6, currentColors.biological[2], spectralStainVal);
             r = lerp(r, bioR, aBio);
             g = lerp(g, bioG, aBio);
             b = lerp(b, bioB, aBio);
@@ -1697,7 +1751,7 @@ function renderRadarGrid() {
             }
           }
           
-          // Layer 6: Mechanical Stress & Fractures (Blinding electric cracks that fade to cold seams)
+          // Layer 6: Mechanical Stress & Fractures (Blinding electric/rust cracks that fade to cold seams)
           if (cell.fractureDensity > 0.0 || cell.energyFlash > 0.02) {
             let flash = cell.energyFlash;
             if (cell.fractureDensity > 0.0) {
@@ -1712,9 +1766,9 @@ function renderRadarGrid() {
                 baseB = lerp(colors.stress[2] * 0.2, 255, cool);
               }
               
-              let specR = lerp(baseR, 255, spectralStainVal);
-              let specG = lerp(baseG, 0, spectralStainVal);
-              let specB = lerp(baseB, 180, spectralStainVal);
+              let specR = lerp(baseR, currentColors.stress[0], spectralStainVal);
+              let specG = lerp(baseG, currentColors.stress[1], spectralStainVal);
+              let specB = lerp(baseB, currentColors.stress[2], spectralStainVal);
               r = specR;
               g = specG;
               b = specB;
@@ -1724,9 +1778,9 @@ function renderRadarGrid() {
               let tG = lerp(g, colors.crackTip[1], aFlash);
               let tB = lerp(b, colors.crackTip[2], aFlash);
               
-              r = lerp(tR, 255, spectralStainVal * aFlash);
-              g = lerp(tG, 0, spectralStainVal * aFlash);
-              b = lerp(tB, 180, spectralStainVal * aFlash);
+              r = lerp(tR, currentColors.stress[0], spectralStainVal * aFlash);
+              g = lerp(tG, currentColors.stress[1], spectralStainVal * aFlash);
+              b = lerp(tB, currentColors.stress[2], spectralStainVal * aFlash);
             }
           }
         } 

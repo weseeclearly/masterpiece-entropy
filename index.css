@@ -839,3 +839,26 @@ input[type=range]::-webkit-slider-thumb:hover {
   50% { opacity: 1.0; }
   100% { opacity: 0.5; }
 }
+
+/* Premium Custom Select Dropdown */
+.premium-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 30px !important;
+}
+
+.premium-select:hover,
+.premium-select:focus {
+  border-color: var(--accent-blue) !important;
+  box-shadow: 0 0 8px rgba(30, 144, 255, 0.25);
+}
+
+.premium-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
