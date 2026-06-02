@@ -95,48 +95,186 @@ const substrates = {
 };
 
 const milestones = {
-  basquiat: [
-    { year: 1982, label: "Pristine", age: "0y", status: "STABLE", desc: "Cotton duck canvas exhibits high uniform tension. Bright oilstick and spray paints are elastic and intact." },
-    { year: 1992, label: "Micro-fatigue", age: "10y", status: "EARLY CRACKS", desc: "First humidity cycles trigger microscopic shrinkage. Intra-layer stress accumulates around margins." },
-    { year: 2026, label: "Active Shear", age: "44y", status: "TODAY", desc: "Diagonal corner shear stresses peak; nitrocellulose spray layers show active craquelure cracks. Oilsticks accumulate dust." },
-    { year: 2082, label: "Delamination", age: "100y", status: "ADVANCED", desc: "Heavy interlayer delamination fractures. Dense carbon dust networks branch across 40% of the canvas." },
-    { year: 2232, label: "Total Entropy", age: "250y", status: "COLLAPSE", desc: "Complete support structural failure. Raw linen cotton rots; oilsticks saponify into lead stearate pools." }
-  ],
-  rothko: [
-    { year: 1951, label: "Pristine", age: "0y", status: "STABLE", desc: "Luminous azo Lithol Red and Violet washes are highly saturated, bound with egg lipid and dammar." },
-    { year: 1976, label: "Bleach Voids", age: "25y", status: "EARLY FADING", desc: "Direct UV radiation initiates aromatic azo nitrogen cleavage. Margins fade into subtle cyan-gray voids." },
-    { year: 2026, label: "Pigment Cleavage", age: "75y", status: "TODAY", desc: "Lithol Red azo bonds undergo deep photolysis. Over 30% of the red field is replaced by cold carbon-ash voids." },
-    { year: 2101, label: "Lead Soaps", age: "150y", status: "ADVANCED", desc: "Moisture hydrolyzes animal glue seams, prompting free fatty acids to rise as crystalline, amber lead soap nodes." },
-    { year: 2251, label: "Chromatic Death", age: "300y", status: "COLLAPSE", desc: "Vibrant color fields fully bleached. A dense starfield of crystalline lead soaps clouds the entire vitrine." }
-  ],
-  hirst: [
-    { year: 1991, label: "Pristine", age: "0y", status: "STABLE", desc: "Iridescent tropical Morpho peleides wings pinned onto high-gloss household alkyd paint." },
-    { year: 2001, label: "Gloss Shrinkage", age: "10y", status: "EARLY CRACKS", desc: "Brittle commercial Ripolin alkyd gloss suffers 3% volumetric shrinkage, cracking around specimen borders." },
-    { year: 2026, label: "Chitin Collapse", age: "35y", status: "TODAY", desc: "Humidity triggers localized mold creep along specimens. Butterfly wings start losing structural chitin." },
-    { year: 2071, label: "Fungal Creep", age: "80y", status: "ADVANCED", desc: "Aspergillus mold creeps outward in branching green hyphae, actively devouring raw organic chitin." },
-    { year: 2191, label: "Total Rot", age: "200y", status: "COLLAPSE", desc: "Complete biological decay. Specimens are reduced to dark dust aggregates and powdery green rot." }
-  ],
-  klimt: [
-    { year: 1916, label: "Gilded Splendor", age: "0y", status: "STABLE", desc: "Highly reflective gold, silver, and platinum foil shimmering over a hygroscopic chalk gesso ground." },
-    { year: 1946, label: "Tarnish Seeds", age: "30y", status: "EARLY SULFIDE", desc: "Atmospheric sulfur drives initial silver sulfidation, forming thin dark silver sulfide (Ag2S) seeds." },
-    { year: 2026, label: "Gold Flaking", age: "110y", status: "TODAY", desc: "Silver sulfidation darkens into black veins. Moisture cycles generate shear stresses, peeling gold foil borders." },
-    { year: 2116, label: "Soap Eruption", age: "200y", status: "ADVANCED", desc: "Mobile lead soaps bubble through gold leaf layers, creating eruptive amber crystallization craters." },
-    { year: 2316, label: "Metallic Death", age: "400y", status: "COLLAPSE", desc: "Complete gold delamination and tarnished silver decay, leaving a bare chalk gesso outline and synthetic resin." }
-  ],
-  pollock: [
-    { year: 1948, label: "Liquid Labyrinth", age: "0y", status: "STABLE", desc: "Liquid loops of industrial alkyd enamel and tube oils poured over rigid unprimed Masonite board." },
-    { year: 1963, label: "Polymer Stress", age: "15y", status: "EARLY CRACKS", desc: "Polymerisation of commercial enamel induces volumetric shrinkage, driving early cracks in thick drip tracks." },
-    { year: 2026, label: "Alligator Craquelure", age: "78y", status: "TODAY", desc: "Widespread explosive craquelure. Heavy sand, pebbles, and cigarette ash aggregate stress concentrations." },
-    { year: 2098, label: "Board Warping", age: "150y", status: "ADVANCED", desc: "Hygroscopic Masonite wood support bends, tearing the locked alkyd loops at boundary coordinates." },
-    { year: 2248, label: "Shattered Grid", age: "300y", status: "COLLAPSE", desc: "Paint delamination leads to catastrophic shedding. The drip network is fractured into isolated floating islands." }
-  ],
-  magritte: [
-    { year: 1954, label: "Nocturnal Twilight", age: "0y", status: "STABLE", desc: "Luminescent Prussian Blue sky and zinc oxide streetlamp wash painted over a thin zinc oil ground." },
-    { year: 1974, label: "Sky Photolysis", age: "20y", status: "EARLY FADING", desc: "Solar UV initiates Prussian Blue photo-reduction, creating cyan-gray sky bleaching seeds." },
-    { year: 2026, label: "Zinc Soap Haze", age: "72y", status: "TODAY", desc: "Advanced sky bleaching; zinc oxides migrate to form microscopic semi-translucent zinc soap hazes over shadows." },
-    { year: 2104, label: "Efflorescence Fog", age: "150y", status: "ADVANCED", desc: "Microscopic soap hazes expand into a dense, foggy white efflorescence layer, obscuring the house silhouette." },
-    { year: 2254, label: "Ethereal Void", age: "300y", status: "COLLAPSE", desc: "The Prussian Blue sky is fully bleached, and nocturnal forest shadows are completely coated in white zinc format crystals." }
-  ]
+  basquiat: {
+    freeport: [
+      { elapsed: 0, year: 1982, label: "Pristine", age: "0y", status: "STABLE", desc: "Cotton duck canvas exhibits high uniform tension. Bright oilstick and spray paints are elastic and intact." },
+      { elapsed: 100, year: 2082, label: "Micro-fatigue", age: "100y", status: "EARLY AGING", desc: "Slow room-temperature moisture cycles initiate micro-fatigue around canvas margins." },
+      { elapsed: 300, year: 2282, label: "Active Shear", age: "300y", status: "STEADY CRACKS", desc: "Diagonal corner shear stresses peak; nitrocellulose spray layers show active craquelure cracks." },
+      { elapsed: 500, year: 2482, label: "Soap Nucleation", age: "500y", status: "ADVANCED SOAPS", desc: "Lead soaps slowly migrate and nucleate in dark, quiet crystalline structures." },
+      { elapsed: 1000, year: 2982, label: "Total Entropy", age: "1000y", status: "COLLAPSE", desc: "Complete support structural failure. Raw linen cotton rots; oilsticks saponify into lead stearate pools." }
+    ],
+    penthouse: [
+      { elapsed: 0, year: 1982, label: "Pristine", age: "0y", status: "STABLE", desc: "Oilstick and spray paints are elastic and intact under standard conditions." },
+      { elapsed: 10, year: 1992, label: "Photo-decay", age: "10y", status: "EARLY FADING", desc: "Floor-to-ceiling glass windows expose canvas to high UV cycles. Azo red pigments begin to fade rapidly." },
+      { elapsed: 30, year: 2012, label: "Solar Craquelure", age: "30y", status: "ACTIVE STRESS", desc: "Extreme solar heat drying out paint. Wide thermal expansion drives cracking through thick paint layers." },
+      { elapsed: 44, year: 2026, label: "Active Bleaching", age: "44y", status: "TODAY", desc: "44 years of sharp temperature/RH cycles trigger massive craquelure and deep photochemical fading." },
+      { elapsed: 100, year: 2082, label: "Total Devaluation", age: "100y", status: "COLLAPSE", desc: "Complete aesthetic and structural collapse under direct solar exposure. Paint layers crumble and shed from support." }
+    ],
+    museum: [
+      { elapsed: 0, year: 1982, label: "Pristine", age: "0y", status: "STABLE", desc: "Canvas maintains stable physical properties inside clean showcases." },
+      { elapsed: 20, year: 2002, label: "Vibration Fatigue", age: "20y", status: "EARLY CRACKS", desc: "Low-frequency vibrations from museum visitors' footsteps initiate early diagonal corner strain cracks." },
+      { elapsed: 44, year: 2026, label: "Hairline Networks", age: "44y", status: "TODAY", desc: "Vibration cracks propagate across boundaries, forming fine hairline networks." },
+      { elapsed: 118, year: 2100, label: "Delamination", age: "118y", status: "ADVANCED", desc: "Mechanical fatigue drives gesso ground detaching from canvas. Major pigment flakes separate from the support." },
+      { elapsed: 268, year: 2250, label: "Brittle Collapse", age: "268y", status: "COLLAPSE", desc: "Complete paint flaking and delamination under continuous micro-vibrations, leaving a bare support." }
+    ],
+    catastrophe: [
+      { elapsed: 0, year: "+0h", label: "Pristine", age: "0h", status: "STABLE", desc: "Secure shipping crate environment before climate system failure." },
+      { elapsed: 2, year: "+2h", label: "Thermal Shock", age: "2h", status: "RAPID STRESS", desc: "Cargo hold heating to 42C triggers rapid volumetric expansions and early stress concentrations." },
+      { elapsed: 6, year: "+6h", label: "Explosive Craquelure", age: "6h", status: "MAJOR CRACKS", desc: "Severe moisture leak saturates canvas. Wooden support swells rapidly, driving aggressive diagonal fractures." },
+      { elapsed: 12, year: "+12h", label: "Biological Outbreak", age: "12h", status: "MOLD SPEEDS", desc: "Fungal spores explode in 95% relative humidity and 42C heat, feeding on wet organic canvas binders." },
+      { elapsed: 24, year: "+24h", label: "Total Collapse", age: "24h", status: "TOTAL DECAY", desc: "Physical specimen rot and structural breakdown are complete in one day. Canvas is completely decayed." }
+    ]
+  },
+  rothko: {
+    freeport: [
+      { elapsed: 0, year: 1951, label: "Pristine", age: "0y", status: "STABLE", desc: "Luminous azo Lithol Red and Violet washes are highly saturated, bound with egg lipid and dammar." },
+      { elapsed: 100, year: 2051, label: "Mild Bleach", age: "100y", status: "EARLY FADING", desc: "Minor oxygen reaction and dark-oxidation slowly fade Lithol Red margins." },
+      { elapsed: 300, year: 2251, label: "Crystalline Soaps", age: "300y", status: "STEADY SOAPS", desc: "Fatty acids slowly rise and nucleate, forming a scattering of tiny gold-amber soap nodes." },
+      { elapsed: 500, year: 2451, label: "Haze Formation", age: "500y", status: "ADVANCED HAZES", desc: "Crystalline soap nodes cluster, forming a semi-translucent haze over the lower red block." },
+      { elapsed: 1000, year: 2951, label: "Umber Eclipse", age: "1000y", status: "COLLAPSE", desc: "Total canvas degradation. Pigments are completely dulled, and animal glue substrate is fully broken down." }
+    ],
+    penthouse: [
+      { elapsed: 0, year: 1951, label: "Pristine", age: "0y", status: "STABLE", desc: "Vibrant washes are highly saturated and intact." },
+      { elapsed: 25, year: 1976, label: "Bleach Voids", age: "25y", status: "EARLY FADING", desc: "Direct UV radiation initiates aromatic azo nitrogen cleavage. Margins fade into subtle cyan-gray voids." },
+      { elapsed: 75, year: 2026, label: "Pigment Cleavage", age: "75y", status: "TODAY", desc: "Lithol Red azo bonds undergo deep photolysis. Over 30% of the red field is replaced by cold carbon-ash voids." },
+      { elapsed: 150, year: 2101, label: "Lead Soaps", age: "150y", status: "ADVANCED", desc: "Moisture hydrolyzes animal glue seams, prompting free fatty acids to rise as crystalline, amber lead soap nodes." },
+      { elapsed: 300, year: 2251, label: "Chromatic Death", age: "300y", status: "COLLAPSE", desc: "Vibrant color fields fully bleached. A dense starfield of crystalline lead soaps clouds the entire vitrine." }
+    ],
+    museum: [
+      { elapsed: 0, year: 1951, label: "Pristine", age: "0y", status: "STABLE", desc: "Azo red fields are highly saturated and structurally stable inside silent showcases." },
+      { elapsed: 30, year: 1981, label: "Support Fatigue", age: "30y", status: "EARLY STRAIN", desc: "Low-level museum vibration induces mechanical fatigue on support framework." },
+      { elapsed: 75, year: 2026, label: "Hairline Seams", age: "75y", status: "TODAY", desc: "Hairline cracks slowly trace the boundaries between violet and green color blocks." },
+      { elapsed: 180, year: 2131, label: "Pigment Separation", age: "180y", status: "ADVANCED CRACKING", desc: "Vibration fatigue initiates fine flaking at edges. Wash layers slowly detach from gesso ground." },
+      { elapsed: 400, year: 2351, label: "Structural Rupture", age: "400y", status: "COLLAPSE", desc: "Delamination along major glue lines causes massive surface paint shedding." }
+    ],
+    catastrophe: [
+      { elapsed: 0, year: "+0h", label: "Pristine", age: "0h", status: "STABLE", desc: "Pristine Rothko layers protected in shipping crate container." },
+      { elapsed: 2, year: "+2h", label: "Thermal Photolysis", age: "2h", status: "RAPID FADING", desc: "Searing cargo-hold heat combined with intense sunlight accelerates azo photolysis." },
+      { elapsed: 6, year: "+6h", label: "Explosive Bleaching", age: "6h", status: "MAJOR VOIDS", desc: "Azo bonds undergo extreme photolytic cleavage. Extensive bleached gray voids erupt across the canvas." },
+      { elapsed: 12, year: "+12h", label: "Soap Eruption", age: "12h", status: "ACTIVE SOAPS", desc: "42C heat melts animal glues, driving explosive lead soap crystallization through thin paint films." },
+      { elapsed: 24, year: "+24h", label: "Chromatic Dissolution", age: "24h", status: "TOTAL DECAY", desc: "Complete color wash bleaching and crystalline soap saturation. Chromatic structure is entirely lost." }
+    ]
+  },
+  hirst: {
+    freeport: [
+      { elapsed: 0, year: 1991, label: "Pristine", age: "0y", status: "STABLE", desc: "Iridescent tropical Morpho peleides wings pinned onto high-gloss household alkyd paint." },
+      { elapsed: 100, year: 2091, label: "Slow Shrinkage", age: "100y", status: "EARLY CRACKS", desc: "Extremely slow polymerization and cooling in Freeport darkness triggers micro-craquelure around specimen pins." },
+      { elapsed: 300, year: 2291, label: "Chitin Brittleness", age: "300y", status: "ADVANCED AGING", desc: "Butterfly wings slowly lose structural moisture and organic resilience, becoming highly fragile." },
+      { elapsed: 600, year: 2591, label: "Chitin Cleavage", age: "600y", status: "DECAY SEEDS", desc: "Slow mechanical fatigue initiates delamination of structural color wing layers." },
+      { elapsed: 1000, year: 2991, label: "Dust Saponification", age: "1000y", status: "COLLAPSE", desc: "Wings disintegrate into fine dry organic dust. The underlying alkyd paint is fully cracked and dull." }
+    ],
+    penthouse: [
+      { elapsed: 0, year: 1991, label: "Pristine", age: "0y", status: "STABLE", desc: "Iridescent butterfly wings on shiny household gloss paint." },
+      { elapsed: 10, year: 2001, label: "Gloss Shrinkage", age: "10y", status: "EARLY CRACKS", desc: "Brittle commercial Ripolin alkyd gloss suffers 3% volumetric shrinkage, cracking around specimen borders." },
+      { elapsed: 35, year: 2026, label: "Chitin Collapse", age: "35y", status: "TODAY", desc: "Humidity triggers localized mold creep along specimens. Butterfly wings start losing structural chitin." },
+      { elapsed: 80, year: 2071, label: "Fungal Creep", age: "80y", status: "ADVANCED", desc: "Aspergillus mold creeps outward in branching green hyphae, actively devouring raw organic chitin." },
+      { elapsed: 200, year: 2191, label: "Total Rot", age: "200y", status: "COLLAPSE", desc: "Complete biological decay. Specimens are reduced to dark dust aggregates and powdery green rot." }
+    ],
+    museum: [
+      { elapsed: 0, year: 1991, label: "Pristine", age: "0y", status: "STABLE", desc: "Butterfly specimens stable within inert gas vitrine casing." },
+      { elapsed: 15, year: 2006, label: "Vibration Fatigue", age: "15y", status: "EARLY CRACKS", desc: "Museum vibrations cause fine fractures to radiate from heavy steel specimen pins into brittle gloss." },
+      { elapsed: 35, year: 2026, label: "Craquelure Network", age: "35y", status: "TODAY", desc: "Continuous micro-shocks expand craquelure network, outlining butterfly wing attachment points." },
+      { elapsed: 100, year: 2091, label: "Wing Flaking", age: "100y", status: "ADVANCED CRACKING", desc: "Resonant vibration stresses flake and dislodge fragile wing fragments." },
+      { elapsed: 250, year: 2241, label: "Mechanical Shedding", age: "250y", status: "COLLAPSE", desc: "Specimens completely detach from pins and disintegrate due to perpetual structural vibration." }
+    ],
+    catastrophe: [
+      { elapsed: 0, year: "+0h", label: "Pristine", age: "0h", status: "STABLE", desc: "Secure shipping crate environment before cargo leak failure." },
+      { elapsed: 2, year: "+2h", label: "Moisture Tide", age: "2h", status: "RAPID STRESS", desc: "Wet air enters crate. Rapid swelling of backing panel initiates huge tension around butterfly pins." },
+      { elapsed: 6, year: "+6h", label: "Volumetric Fission", age: "6h", status: "MAJOR CRACKS", desc: "Brittle Ripolin paint shatters under moisture expansion, tearing wings at boundary interfaces." },
+      { elapsed: 12, year: "+12h", label: "Aspergillus Explosion", age: "12h", status: "MOLD SPEEDS", desc: "95% humidity and 42C heat spark massive fungal growth, consuming organic wing specimens in real-time." },
+      { elapsed: 24, year: "+24h", label: "Biological Collapse", age: "24h", status: "TOTAL DECAY", desc: "Complete specimen rot. Butterfly wings are completely digested, leaving slimy black-green fungal traces." }
+    ]
+  },
+  klimt: {
+    freeport: [
+      { elapsed: 0, year: 1916, label: "Gilded Splendor", age: "0y", status: "STABLE", desc: "Highly reflective gold, silver, and platinum foil shimmering over calcium carbonate gesso." },
+      { elapsed: 100, year: 2016, label: "Tarnish Seeds", age: "100y", status: "EARLY SULFIDE", desc: "Trace sulfur in Freeport vault drives slow silver leaf sulfidation, forming thin Ag2S seeds." },
+      { elapsed: 300, year: 2216, label: "Blackened Veins", age: "300y", status: "STEADY TARNISH", desc: "Silver sulfide seeds merge into dark veins traversing the silver and gold boundaries." },
+      { elapsed: 600, year: 2516, label: "Lead Soap Bubbles", age: "600y", status: "ADVANCED SOAPS", desc: "Mobile lead soaps slowly bubble and erupt through genuine foil layers, forming amber craters." },
+      { elapsed: 1000, year: 2916, label: "Gilded Decay", age: "1000y", status: "COLLAPSE", desc: "Gold and silver foil layers fully delaminate and flake, leaving a chalky gesso outline." }
+    ],
+    penthouse: [
+      { elapsed: 0, year: 1916, label: "Gilded Splendor", age: "0y", status: "STABLE", desc: "Highly reflective gold, silver, and platinum foil shimmering over a hygroscopic chalk gesso ground." },
+      { elapsed: 30, year: 1946, label: "Tarnish Seeds", age: "30y", status: "EARLY SULFIDE", desc: "Atmospheric sulfur drives initial silver sulfidation, forming thin dark silver sulfide (Ag2S) seeds." },
+      { elapsed: 110, year: 2026, label: "Gold Flaking", age: "110y", status: "TODAY", desc: "Silver sulfidation darkens into black veins. Moisture cycles generate shear stresses, peeling gold foil borders." },
+      { elapsed: 200, year: 2116, label: "Soap Eruption", age: "200y", status: "ADVANCED", desc: "Mobile lead soaps bubble through gold leaf layers, creating eruptive amber crystallization craters." },
+      { elapsed: 400, year: 2316, label: "Metallic Death", age: "400y", status: "COLLAPSE", desc: "Complete gold delamination and tarnished silver decay, leaving a bare chalk gesso outline." }
+    ],
+    museum: [
+      { elapsed: 0, year: 1916, label: "Gilded Splendor", age: "0y", status: "STABLE", desc: "Reflective foils are structurally stable inside standard cases." },
+      { elapsed: 40, year: 1956, label: "Foil Fatigue", age: "40y", status: "EARLY STRAIN", desc: "Continuous floor micro-vibrations stress the weak boundary between foil layers and gesso ground." },
+      { elapsed: 110, year: 2026, label: "Gesso Flaking", age: "110y", status: "TODAY", desc: "Vibration fatigue cracks the brittle chalk gesso ground, starting foil delamination at edges." },
+      { elapsed: 220, year: 2136, label: "Foil Shedding", age: "220y", status: "ADVANCED CRACKING", desc: "Foils delaminate and flake off in large sheets under persistent vibration waves." },
+      { elapsed: 500, year: 2416, label: "Chalky Skeleton", age: "500y", status: "COLLAPSE", desc: "All gold and silver foil is completely shed, leaving only the bare white chalky skeleton." }
+    ],
+    catastrophe: [
+      { elapsed: 0, year: "+0h", label: "Pristine", age: "0h", status: "STABLE", desc: "Klimt masterpiece sealed in shipping container." },
+      { elapsed: 2, year: "+2h", label: "Corrosive Acid", age: "2h", status: "RAPID TARNISH", desc: "Ambient sulfur and humidity vapor blacken silver leaf coordinates in minutes." },
+      { elapsed: 6, year: "+6h", label: "Gesso Delamination", age: "6h", status: "MAJOR CRACKS", desc: "Hygroscopic gesso absorbs water, swelling rapidly and shattering gold foil layers." },
+      { elapsed: 12, year: "+12h", label: "Explosive Bubbles", age: "12h", status: "ACTIVE SOAPS", desc: "Extreme heat triggers explosive lead soap eruptions, tearing through the remaining foils." },
+      { elapsed: 24, year: "+24h", label: "Metallic Dissolution", age: "24h", status: "TOTAL DECAY", desc: "Gold delamination is complete; tarnished silver is entirely corroded and blackened." }
+    ]
+  },
+  pollock: {
+    freeport: [
+      { elapsed: 0, year: 1948, label: "Liquid Labyrinth", age: "0y", status: "STABLE", desc: "Liquid loops of industrial alkyd enamel and tube oils poured over rigid unprimed Masonite board." },
+      { elapsed: 100, year: 2048, label: "Polymer Fatigue", age: "100y", status: "EARLY AGING", desc: "Extremely slow cross-linking polymerisation drives subtle micro-stress inside alkyd loops." },
+      { elapsed: 300, year: 2248, label: "Micro-craquelure", age: "300y", status: "STEADY CRACKS", desc: "Volumetric shrinkage over centuries initiates fine hairline cracks in thick paint intersections." },
+      { elapsed: 600, year: 2548, label: "Board Fatigue", age: "600y", status: "ADVANCED WARPING", desc: "Hygroscopic Masonite wood fibers slowly absorb trace moisture, driving boundary shear." },
+      { elapsed: 1000, year: 2948, label: "Shattered Grid", age: "1000y", status: "COLLAPSE", desc: "Paint delamination leads to catastrophic shedding. The drip network is fractured into isolated floating islands." }
+    ],
+    penthouse: [
+      { elapsed: 0, year: 1948, label: "Liquid Labyrinth", age: "0y", status: "STABLE", desc: "Industrial alkyd enamel loops poured over unprimed Masonite." },
+      { elapsed: 15, year: 1963, label: "Polymer Stress", age: "15y", status: "EARLY CRACKS", desc: "Polymerisation of commercial enamel induces volumetric shrinkage, driving early cracks in thick drip tracks." },
+      { elapsed: 78, year: 2026, label: "Alligator Craquelure", age: "78y", status: "TODAY", desc: "Widespread explosive craquelure. Heavy sand, pebbles, and cigarette ash aggregate stress concentrations." },
+      { elapsed: 150, year: 2098, label: "Board Warping", age: "150y", status: "ADVANCED", desc: "Hygroscopic Masonite wood support bends, tearing the locked alkyd loops at boundary coordinates." },
+      { elapsed: 300, year: 2248, label: "Shattered Grid", age: "300y", status: "COLLAPSE", desc: "Paint delamination leads to catastrophic shedding. The drip network is fractured into isolated floating islands." }
+    ],
+    museum: [
+      { elapsed: 0, year: 1948, label: "Liquid Labyrinth", age: "0y", status: "STABLE", desc: "Alkyd enamel loops are highly stable on Masonite support." },
+      { elapsed: 25, year: 1973, label: "Resonant Fatigue", age: "25y", status: "EARLY STRAIN", desc: "Low-frequency museum resonance fatigue initiates micro-stress concentrations near embedded pebbles." },
+      { elapsed: 78, year: 2026, label: "Anchor Craquelure", age: "78y", status: "TODAY", desc: "Vibration fatigue cracks propagate outward from heavy sand aggregates." },
+      { elapsed: 160, year: 2108, label: "Board Splitting", age: "160y", status: "ADVANCED FISSURES", desc: "Continuous visitor floor vibrations split brittle Masonite board backing along edge boundaries." },
+      { elapsed: 350, year: 2298, label: "Grid Fracture", age: "350y", status: "COLLAPSE", desc: "Complete mechanical disintegration of Masonite support, shattering Pollock's loops into dust." }
+    ],
+    catastrophe: [
+      { elapsed: 0, year: "+0h", label: "Pristine", age: "0h", status: "STABLE", desc: "Pollock Masonite grid packed inside shipping container." },
+      { elapsed: 2, year: "+2h", label: "Thermal Warping", age: "2h", status: "RAPID STRESS", desc: "High cargo temperature triggers aggressive alkyd shrinkage and early surface cracks." },
+      { elapsed: 6, year: "+6h", label: "Masonite Swelling", age: "6h", status: "MAJOR CRACKS", desc: "Water leak saturates unprimed Masonite support. Extreme wood fiber expansion fractures loops instantly." },
+      { elapsed: 12, year: "+12h", label: "Interlayer Ripping", age: "12h", status: "ACTIVE FRACTURES", desc: "Alkyd loops rip apart along boundaries under extreme moisture swelling, completely splitting thick tracks." },
+      { elapsed: 24, year: "+24h", label: "Catastrophic Fission", age: "24h", status: "TOTAL DECAY", desc: "The backing is completely warped and split. The drip labyrinth is completely fractured and detached." }
+    ]
+  },
+  magritte: {
+    freeport: [
+      { elapsed: 0, year: 1954, label: "Nocturnal Twilight", age: "0y", status: "STABLE", desc: "Luminescent Prussian Blue sky and zinc oxide streetlamp wash painted over a thin zinc oil ground." },
+      { elapsed: 100, year: 2054, label: "Dark Photo-reduction", age: "100y", status: "EARLY FADING", desc: "Prussian blue undergoes slow atmospheric fading and oxidation, slightly bleaching sky glazes." },
+      { elapsed: 300, year: 2254, label: "Haze Nucleation", age: "300y", status: "STEADY HAZES", desc: "Free zinc fatty acids slowly rise, forming microscopic zinc soap haze seeds in shadow regions." },
+      { elapsed: 600, year: 2554, label: "Foggy Efflorescence", age: "600y", status: "ADVANCED HAZES", desc: "Crystalline zinc soaps aggregate into a semi-translucent white efflorescence layer." },
+      { elapsed: 1000, year: 2954, label: "Ash Void", age: "1000y", status: "COLLAPSE", desc: "Prussian blue sky is completely grayed, and nocturnal forest shadows are completely hidden under zinc format crystals." }
+    ],
+    penthouse: [
+      { elapsed: 0, year: 1954, label: "Nocturnal Twilight", age: "0y", status: "STABLE", desc: "Luminescent sky and zinc oxide streetlamp wash painted over a thin zinc oil ground." },
+      { elapsed: 20, year: 1974, label: "Sky Photolysis", age: "20y", status: "EARLY FADING", desc: "Solar UV initiates Prussian Blue photo-reduction, creating cyan-gray sky bleaching seeds." },
+      { elapsed: 72, year: 2026, label: "Zinc Soap Haze", age: "72y", status: "TODAY", desc: "Advanced sky bleaching; zinc oxides migrate to form microscopic semi-translucent zinc soap hazes over shadows." },
+      { elapsed: 150, year: 2104, label: "Efflorescence Fog", age: "150y", status: "ADVANCED", desc: "Microscopic soap hazes expand into a dense, foggy white efflorescence layer, obscuring the house silhouette." },
+      { elapsed: 300, year: 2254, label: "Ethereal Void", age: "300y", status: "COLLAPSE", desc: "The Prussian Blue sky is fully bleached, and nocturnal forest shadows are completely coated in white zinc format crystals." }
+    ],
+    museum: [
+      { elapsed: 0, year: 1954, label: "Nocturnal Twilight", age: "0y", status: "STABLE", desc: "Sky glazes and streetlamp wash are highly stable." },
+      { elapsed: 30, year: 1984, label: "Glaze Fatigue", age: "30y", status: "EARLY CRACKS", desc: "Low-frequency vibration fatigue initiates micro-cracking in the highly brittle thin sky glazes." },
+      { elapsed: 72, year: 2026, label: "Hairline Mesh", age: "72y", status: "TODAY", desc: "Fine micro-cracks form a fine mesh across the luminescent blue sky." },
+      { elapsed: 160, year: 2114, label: "Zinc Ground Cleavage", age: "160y", status: "ADVANCED CRACKING", desc: "Continuous micro-shocks peel thin oil washes from the reactive zinc ground layers." },
+      { elapsed: 350, year: 2304, label: "Ethereal Disintegration", age: "350y", status: "COLLAPSE", desc: "Total glaze separation and cracking. The sky and house details are completely flaked off, leaving only bare metal." }
+    ],
+    catastrophe: [
+      { elapsed: 0, year: "+0h", label: "Pristine", age: "0h", status: "STABLE", desc: "Magritte painting packed inside shipping container." },
+      { elapsed: 2, year: "+2h", label: "Prussian Photolysis", age: "2h", status: "RAPID FADING", desc: "High temperature and intense light trigger rapid Prussian Blue photo-reduction." },
+      { elapsed: 6, year: "+6h", label: "Explosive Bleaching", age: "6h", status: "MAJOR VOIDS", desc: "Sky glazes bleach into massive gray and cyan voids under extreme photolytic stress." },
+      { elapsed: 12, year: "+12h", label: "Zinc Soap Outbreak", age: "12h", status: "MOLD SPEEDS", desc: "Moisture and 42C heat force explosive zinc oxide fat-reaction, rising as eruptive white soap blooms." },
+      { elapsed: 24, year: "+24h", label: "White Efflorescence Fog", age: "24h", status: "TOTAL DECAY", desc: "The sky is completely bleached, and the house and streetlamp details are completely hidden under dense white zinc formats." }
+    ]
+  }
 };
 
 let activeMilestoneIndex = 0; // Default to "Pristine" milestone
@@ -147,6 +285,14 @@ let liveSimulatedFrames = 0;   // Stores the active running simulation frames
 let isViewingSnapshot = false;  // Flag indicating if we are currently viewing a historical snapshot
 let spectralStainVal = 0.0; // 0.0 = forensic aging, 1.0 = bio-spectral heatmap
 let activeTheme = 'xray';   // 'xray' | 'naturalism'
+
+// Persisted separate simulation states for each situation, keeping timelines, grids, and milestones fully isolated
+let environmentStates = {
+  freeport: null,
+  penthouse: null,
+  museum: null,
+  catastrophe: null
+};
 
 // Premium Theme Color Mappings for the Spectral Stain Mode (target colors at 100% stain)
 const themeColors = {
@@ -424,11 +570,11 @@ function draw() {
   
   // 7. Save dynamic snapshots when reaching future milestones during the live simulation
   if (assetStatus === 'monitoring' && !isViewingSnapshot) {
-    let currentYear = getCurrentSimulatedYear();
-    let list = milestones[activeArtwork];
+    let currentTimeVal = getCurrentSimulatedTime();
+    let list = milestones[activeArtwork][activeCycle];
     
     for (let idx = 1; idx < list.length; idx++) {
-      if (currentYear >= list[idx].year && (!artworkSnapshots[idx] || !artworkSnapshots[idx].isCapturedFromLive)) {
+      if (currentTimeVal >= list[idx].elapsed && (!artworkSnapshots[idx] || !artworkSnapshots[idx].isCapturedFromLive)) {
         artworkSnapshots[idx] = deepCopyGrid(forceGrid);
         artworkSnapshots[idx].isCapturedFromLive = true;
         artworkSnapshots[idx].unlocked = true;
@@ -2174,13 +2320,24 @@ function switchArtwork(artworkKey) {
   
   // Set default milestone index and rebuild timeline snapshots
   activeMilestoneIndex = 0; // Default to 'Pristine'
-  renderTimelineSnapshots();
   
+  // Clear other environment states to force fresh initialization for the new artwork
+  environmentStates = {
+    freeport: null,
+    penthouse: null,
+    museum: null,
+    catastrophe: null
+  };
+  
+  renderTimelineSnapshots();
   resetSimulation();
 }
 
 function switchLifeCycle(cycleKey) {
   if (activeCycle === cycleKey) return;
+  
+  // 1. Save current active simulation state
+  saveEnvironmentState(activeCycle);
   
   document.getElementById('cycle-freeport').classList.remove('active');
   document.getElementById('cycle-penthouse').classList.remove('active');
@@ -2203,6 +2360,100 @@ function switchLifeCycle(cycleKey) {
   
   metaStatus.innerText = "TRANSITIONING";
   metaStatus.style.color = "var(--accent-blue)";
+  
+  // 2. Load or initialize new environment state
+  loadEnvironmentState(cycleKey);
+  
+  // 3. Force Legend color sync and rebuild snapshots HUD UI
+  updateLegendColors();
+  renderTimelineSnapshots();
+}
+
+function saveEnvironmentState(cycleKey) {
+  if (!cycleKey) return;
+  
+  environmentStates[cycleKey] = {
+    forceGrid: deepCopyGrid(forceGrid),
+    simulatedFrames: simulatedFrames,
+    artworkSnapshots: artworkSnapshots.map(snap => {
+      if (!snap) return null;
+      let copy = deepCopyGrid(snap);
+      copy.unlocked = snap.unlocked;
+      copy.isCapturedFromLive = snap.isCapturedFromLive;
+      return copy;
+    }),
+    activeMilestoneIndex: activeMilestoneIndex,
+    isViewingSnapshot: isViewingSnapshot,
+    assetStatus: assetStatus,
+    assetIntegrity: assetIntegrity,
+    isResurrected: isResurrected,
+    mechanicalDecay: mechanicalDecay,
+    chemicalDecay: chemicalDecay,
+    biologicalDecay: biologicalDecay,
+    totalDegradation: totalDegradation,
+    currentValuation: currentValuation
+  };
+}
+
+function loadEnvironmentState(cycleKey) {
+  if (!cycleKey) return;
+  
+  let state = environmentStates[cycleKey];
+  if (state) {
+    forceGrid = deepCopyGrid(state.forceGrid);
+    simulatedFrames = state.simulatedFrames;
+    artworkSnapshots = state.artworkSnapshots.map(snap => {
+      if (!snap) return null;
+      let copy = deepCopyGrid(snap);
+      copy.unlocked = snap.unlocked;
+      copy.isCapturedFromLive = snap.isCapturedFromLive;
+      return copy;
+    });
+    activeMilestoneIndex = state.activeMilestoneIndex;
+    isViewingSnapshot = state.isViewingSnapshot;
+    assetStatus = state.assetStatus;
+    assetIntegrity = state.assetIntegrity;
+    isResurrected = state.isResurrected;
+    mechanicalDecay = state.mechanicalDecay;
+    chemicalDecay = state.chemicalDecay;
+    biologicalDecay = state.biologicalDecay;
+    totalDegradation = state.totalDegradation;
+    currentValuation = state.currentValuation;
+  } else {
+    initFreshEnvironmentState();
+  }
+}
+
+function initFreshEnvironmentState() {
+  mechanicalDecay = 0.0;
+  chemicalDecay = 0.0;
+  biologicalDecay = 0.0;
+  totalDegradation = 0.0;
+  assetIntegrity = 100.0;
+  currentValuation = substrates[activeArtwork].startingValuation;
+  assetStatus = 'monitoring';
+  isResurrected = false;
+  isViewingSnapshot = false;
+  liveSimulationGrid = null;
+  liveSimulatedFrames = 0;
+  simulatedFrames = 0;
+  
+  resetGridToPristine();
+  
+  artworkSnapshots = [];
+  artworkSnapshots[0] = deepCopyGrid(forceGrid);
+  artworkSnapshots[0].unlocked = true;
+  artworkSnapshots[0].isCapturedFromLive = false;
+  
+  const list = milestones[activeArtwork][activeCycle];
+  for (let idx = 1; idx < list.length; idx++) {
+    artworkSnapshots[idx] = deepCopyGrid(forceGrid);
+    artworkSnapshots[idx].unlocked = false;
+    artworkSnapshots[idx].isCapturedFromLive = false;
+  }
+  
+  activeMilestoneIndex = 0;
+  isViewingSnapshot = false;
 }
 
 function setRenderMode(mode, targetBtn) {
@@ -2252,6 +2503,21 @@ function getCurrentSimulatedYear() {
   }
   
   return substrates[activeArtwork].paintedYear + elapsedYears;
+}
+
+function getCurrentSimulatedTime() {
+  let elapsed = 0;
+  if (activeCycle === 'freeport') {
+    elapsed = Math.floor(simulatedFrames / 12);
+  } else if (activeCycle === 'penthouse') {
+    elapsed = Math.floor(simulatedFrames / 365);
+  } else if (activeCycle === 'museum') {
+    elapsed = Math.floor(simulatedFrames / 52);
+  } else if (activeCycle === 'catastrophe') {
+    let totalMinutes = Math.floor(simulatedFrames * 10);
+    elapsed = Math.floor(totalMinutes / 60); // hours
+  }
+  return elapsed;
 }
 
 function updateTimelineHUD() {
@@ -2312,7 +2578,7 @@ function renderTimelineSnapshots() {
   if (!container) return;
   
   container.innerHTML = "";
-  const list = milestones[activeArtwork];
+  const list = milestones[activeArtwork][activeCycle];
   
   list.forEach((m, idx) => {
     // Only display milestones that have been reached/unlocked!
@@ -2356,12 +2622,35 @@ function renderTimelineSnapshots() {
   let startYear = substrates[activeArtwork].paintedYear;
   let elapsedY = currentYear - startYear;
   
+  let timeTitle = currentYear;
+  let descText = "";
+  if (activeCycle === 'freeport') {
+    let totalMonths = Math.floor(simulatedFrames);
+    let years = Math.floor(totalMonths / 12);
+    descText = `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
+  } else if (activeCycle === 'penthouse') {
+    let totalDays = Math.floor(simulatedFrames);
+    let years = Math.floor(totalDays / 365);
+    descText = `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
+  } else if (activeCycle === 'museum') {
+    let totalWeeks = Math.floor(simulatedFrames);
+    let years = Math.floor(totalWeeks / 52);
+    descText = `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
+  } else if (activeCycle === 'catastrophe') {
+    let totalMinutes = Math.floor(simulatedFrames * 10);
+    let totalHours = Math.floor(totalMinutes / 60);
+    let days = Math.floor(totalHours / 24);
+    let hours = totalHours % 24;
+    timeTitle = `+${totalHours}h`;
+    descText = `Live Feed: Active running simulation at ${days}d, ${hours}h elapsed. Click to return and resume.`;
+  }
+  
   liveCard.innerHTML = `
     <div class="timeline-card-header">
-      <span class="timeline-card-year">${currentYear}</span>
+      <span class="timeline-card-year">${timeTitle}</span>
       <span class="timeline-card-status" style="background: rgba(46, 204, 113, 0.2); color: var(--accent-green); font-weight: 600; animation: pulse-live 2s infinite;">LIVE SIM</span>
     </div>
-    <div class="timeline-card-desc" title="Return to active real-time entropic degradation simulation state.">Live Feed: Active running simulation at ${elapsedY}y elapsed. Click to return and resume.</div>
+    <div class="timeline-card-desc" title="Return to active real-time entropic degradation simulation state.">${descText}</div>
   `;
   
   liveCard.addEventListener('click', () => returnToLiveSimulation());
@@ -2390,16 +2679,23 @@ function goToMilestone(index) {
     }
   }
   
-  const m = milestones[activeArtwork][index];
+  const m = milestones[activeArtwork][activeCycle][index];
   
   // Deep-copy the saved authentic physics snapshot into our active forceGrid!
   if (artworkSnapshots[index]) {
     forceGrid = deepCopyGrid(artworkSnapshots[index]);
   }
   
-  // Update timeline simulated frames to target year
-  let targetAge = m.year - substrates[activeArtwork].paintedYear;
-  simulatedFrames = targetAge * (activeCycle === 'freeport' ? 12 : activeCycle === 'penthouse' ? 365 : activeCycle === 'museum' ? 52 : 3600);
+  // Update timeline simulated frames directly from elapsed native units
+  if (activeCycle === 'freeport') {
+    simulatedFrames = m.elapsed * 12;
+  } else if (activeCycle === 'penthouse') {
+    simulatedFrames = m.elapsed * 365;
+  } else if (activeCycle === 'museum') {
+    simulatedFrames = m.elapsed * 52;
+  } else if (activeCycle === 'catastrophe') {
+    simulatedFrames = m.elapsed * 6; // 6 frames per hour (1 frame = 10 minutes)
+  }
   
   // Sync the diagnostic UI sliders and integrity indicators
   updateAssetMetrics();
@@ -2496,36 +2792,112 @@ function generatePhysicsSnapshots() {
   resetGridToPristine();
   artworkSnapshots[0] = deepCopyGrid(forceGrid);
   artworkSnapshots[0].unlocked = true;
+  artworkSnapshots[0].isCapturedFromLive = false;
   
-  // 2. Snapshot 1: Micro-fatigue (Mild exposure)
-  for (let i = 0; i < 18; i++) {
-    updateGenerativeForces(0.48, 19.5, 0.1, 0.4, 1.0);
+  if (activeCycle === 'freeport') {
+    // Geneva Freeport: extremely slow decay
+    // Snapshot 1: Micro-fatigue
+    for (let i = 0; i < 20; i++) updateGenerativeForces(0.50, 20.0, 0.0, 1.0);
+    artworkSnapshots[1] = deepCopyGrid(forceGrid);
+    artworkSnapshots[1].unlocked = false;
+    artworkSnapshots[1].isCapturedFromLive = false;
+    
+    // Snapshot 2: Active Shear
+    for (let i = 0; i < 40; i++) updateGenerativeForces(0.50, 20.0, 0.0, 1.0);
+    artworkSnapshots[2] = deepCopyGrid(forceGrid);
+    artworkSnapshots[2].unlocked = false;
+    artworkSnapshots[2].isCapturedFromLive = false;
+    
+    // Snapshot 3: Soap Nucleation
+    for (let i = 0; i < 60; i++) updateGenerativeForces(0.50, 20.0, 0.0, 1.0);
+    artworkSnapshots[3] = deepCopyGrid(forceGrid);
+    artworkSnapshots[3].unlocked = false;
+    artworkSnapshots[3].isCapturedFromLive = false;
+    
+    // Snapshot 4: Total Entropy
+    for (let i = 0; i < 150; i++) updateGenerativeForces(0.52, 21.0, 0.0, 1.0);
+    artworkSnapshots[4] = deepCopyGrid(forceGrid);
+    artworkSnapshots[4].unlocked = false;
+    artworkSnapshots[4].isCapturedFromLive = false;
+    
+  } else if (activeCycle === 'penthouse') {
+    // Collector's Penthouse: fast UV photolysis and craquelure
+    // Snapshot 1: Photo-decay
+    for (let i = 0; i < 15; i++) updateGenerativeForces(0.50, 22.0, 1.2, 95.0);
+    artworkSnapshots[1] = deepCopyGrid(forceGrid);
+    artworkSnapshots[1].unlocked = false;
+    artworkSnapshots[1].isCapturedFromLive = false;
+    
+    // Snapshot 2: Solar Craquelure
+    for (let i = 0; i < 35; i++) updateGenerativeForces(0.50, 24.0, 1.5, 95.0);
+    artworkSnapshots[2] = deepCopyGrid(forceGrid);
+    artworkSnapshots[2].unlocked = false;
+    artworkSnapshots[2].isCapturedFromLive = false;
+    
+    // Snapshot 3: Active Bleaching
+    for (let i = 0; i < 50; i++) updateGenerativeForces(0.55, 25.0, 1.8, 95.0);
+    artworkSnapshots[3] = deepCopyGrid(forceGrid);
+    artworkSnapshots[3].unlocked = false;
+    artworkSnapshots[3].isCapturedFromLive = false;
+    
+    // Snapshot 4: Total Devaluation
+    for (let i = 0; i < 160; i++) updateGenerativeForces(0.60, 28.0, 2.5, 120.0);
+    artworkSnapshots[4] = deepCopyGrid(forceGrid);
+    artworkSnapshots[4].unlocked = false;
+    artworkSnapshots[4].isCapturedFromLive = false;
+    
+  } else if (activeCycle === 'museum') {
+    // Museum Vitrine: vibration fatigue cracks
+    // Snapshot 1: Vibration Fatigue
+    for (let i = 0; i < 18; i++) updateGenerativeForces(0.50, 21.0, 0.0, 12.0);
+    artworkSnapshots[1] = deepCopyGrid(forceGrid);
+    artworkSnapshots[1].unlocked = false;
+    artworkSnapshots[1].isCapturedFromLive = false;
+    
+    // Snapshot 2: Hairline Networks
+    for (let i = 0; i < 40; i++) updateGenerativeForces(0.50, 21.0, 0.0, 12.0);
+    artworkSnapshots[2] = deepCopyGrid(forceGrid);
+    artworkSnapshots[2].unlocked = false;
+    artworkSnapshots[2].isCapturedFromLive = false;
+    
+    // Snapshot 3: Delamination
+    for (let i = 0; i < 80; i++) updateGenerativeForces(0.50, 21.0, 0.0, 12.0);
+    artworkSnapshots[3] = deepCopyGrid(forceGrid);
+    artworkSnapshots[3].unlocked = false;
+    artworkSnapshots[3].isCapturedFromLive = false;
+    
+    // Snapshot 4: Brittle Collapse
+    for (let i = 0; i < 180; i++) updateGenerativeForces(0.52, 21.0, 0.0, 15.0);
+    artworkSnapshots[4] = deepCopyGrid(forceGrid);
+    artworkSnapshots[4].unlocked = false;
+    artworkSnapshots[4].isCapturedFromLive = false;
+    
+  } else if (activeCycle === 'catastrophe') {
+    // Transit Catastrophe: explosive heat, humidity leak, biological rot
+    // Snapshot 1: Thermal Shock
+    for (let i = 0; i < 10; i++) updateGenerativeForces(0.60, 35.0, 1.0, 100.0);
+    artworkSnapshots[1] = deepCopyGrid(forceGrid);
+    artworkSnapshots[1].unlocked = false;
+    artworkSnapshots[1].isCapturedFromLive = false;
+    
+    // Snapshot 2: Explosive Craquelure
+    for (let i = 0; i < 25; i++) updateGenerativeForces(0.85, 40.0, 2.0, 150.0);
+    artworkSnapshots[2] = deepCopyGrid(forceGrid);
+    artworkSnapshots[2].unlocked = false;
+    artworkSnapshots[2].isCapturedFromLive = false;
+    
+    // Snapshot 3: Biological Outbreak
+    for (let i = 0; i < 50; i++) updateGenerativeForces(0.95, 42.0, 3.5, 180.0);
+    artworkSnapshots[3] = deepCopyGrid(forceGrid);
+    artworkSnapshots[3].unlocked = false;
+    artworkSnapshots[3].isCapturedFromLive = false;
+    
+    // Snapshot 4: Total Collapse
+    for (let i = 0; i < 120; i++) updateGenerativeForces(0.98, 42.0, 3.5, 180.0);
+    artworkSnapshots[4] = deepCopyGrid(forceGrid);
+    artworkSnapshots[4].unlocked = false;
+    artworkSnapshots[4].isCapturedFromLive = false;
   }
-  artworkSnapshots[1] = deepCopyGrid(forceGrid);
-  artworkSnapshots[1].unlocked = false;
-  
-  // 3. Snapshot 2: Today (Standard age pre-decay baseline)
-  let startAge = 2026 - substrates[activeArtwork].paintedYear;
-  let preAgingCycles = Math.min(22, Math.floor(startAge * 0.12));
-  for (let i = 0; i < preAgingCycles; i++) {
-    updateGenerativeForces(0.48, 19.5, 0.05, 0.4, 1.0); 
-  }
-  artworkSnapshots[2] = deepCopyGrid(forceGrid);
-  artworkSnapshots[2].unlocked = false;
-  
-  // 4. Snapshot 3: Advanced Delamination (Severe degradation)
-  for (let i = 0; i < 160; i++) {
-    updateGenerativeForces(0.55, 23.0, 1.4, 1.2, 1.0);
-  }
-  artworkSnapshots[3] = deepCopyGrid(forceGrid);
-  artworkSnapshots[3].unlocked = false;
-  
-  // 5. Snapshot 4: Total Entropy (Catastrophic collapse)
-  for (let i = 0; i < 480; i++) {
-    updateGenerativeForces(0.72, 32.0, 2.5, 2.0, 1.0);
-  }
-  artworkSnapshots[4] = deepCopyGrid(forceGrid);
-  artworkSnapshots[4].unlocked = false;
   
   // Restore active grid to Pristine (Milestone 0) as default starting state
   forceGrid = deepCopyGrid(artworkSnapshots[0]);
