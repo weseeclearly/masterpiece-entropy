@@ -1750,7 +1750,7 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale
       
       // Decay dynamic state-change glow (cooling embers)
       if (cell.energyFlash > 0.01) {
-        cell.energyFlash *= 0.88;
+        cell.energyFlash *= 0.94;
       } else {
         cell.energyFlash = 0.0;
       }
@@ -2134,7 +2134,7 @@ function renderRadarGrid() {
         // Dynamic visual duality of conservation:
         // - At spectralStainVal = 0 (standard light), it faithfully mimics the original pigment colors to restore visual integrity.
         // - At spectralStainVal = 1 (forensic light), it shifts to the high-contrast synthetic consolidant accent color.
-        let blendFactor = lerp(0.15, 0.85, spectralStainVal);
+        let blendFactor = lerp(0.40, 0.90, spectralStainVal);
         rGhost = lerp(cell.origR || 100, consColor[0], blendFactor);
         gGhost = lerp(cell.origG || 100, consColor[1], blendFactor);
         bGhost = lerp(cell.origB || 100, consColor[2], blendFactor);
@@ -3692,7 +3692,7 @@ function renderTimelineSnapshots() {
   const container = document.getElementById('timeline-snapshots');
   if (!container) return;
   
-  container.innerHTML = "";
+  const fragment = document.createDocumentFragment();
   const list = milestones[activeArtwork][activeCycle];
   
   list.forEach((m, idx) => {
@@ -3723,7 +3723,7 @@ function renderTimelineSnapshots() {
     `;
     
     card.addEventListener('click', () => goToMilestone(idx));
-    container.appendChild(card);
+    fragment.appendChild(card);
   });
   
   // Append a special "Live Simulation" card at the end of the timeline
@@ -3771,7 +3771,10 @@ function renderTimelineSnapshots() {
   `;
   
   liveCard.addEventListener('click', () => returnToLiveSimulation());
-  container.appendChild(liveCard);
+  fragment.appendChild(liveCard);
+  
+  container.innerHTML = "";
+  container.appendChild(fragment);
 }
 
 function goToMilestone(index) {
