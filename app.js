@@ -2341,9 +2341,9 @@ function renderRadarGrid() {
           
           // Spec values mapped cleanly to raw ghost values without intermediate overrides
           
-          rGhost = lerp(rGhost, specR, activeStainVal);
-          gGhost = lerp(gGhost, specG, activeStainVal);
-          bGhost = lerp(bGhost, specB, activeStainVal);
+          rGhost = lerp(rGhost, specR, spectralStainVal);
+          gGhost = lerp(gGhost, specG, spectralStainVal);
+          bGhost = lerp(bGhost, specB, spectralStainVal);
         }
         
         r = lerp(r, rGhost, visibleAlpha);
@@ -3356,45 +3356,7 @@ function resetGridToPristine() {
   configureSubstrateFields();
 }
 
-function generatePhysicsSnapshots() {
-  artworkSnapshots = [];
-  
-  // 1. Snapshot 0: Pristine (Zero decay)
-  resetGridToPristine();
-  artworkSnapshots[0] = deepCopyGrid(forceGrid);
-  
-  // 2. Snapshot 1: Micro-fatigue (Mild exposure)
-  for (let i = 0; i < 18; i++) {
-    updateGenerativeForces(0.48, 19.5, 0.1, 0.4);
-  }
-  artworkSnapshots[1] = deepCopyGrid(forceGrid);
-  
-  // 3. Snapshot 2: Today (Standard age pre-decay baseline)
-  let startAge = 2026 - substrates[activeArtwork].paintedYear;
-  let preAgingCycles = Math.min(22, Math.floor(startAge * 0.12));
-  for (let i = 0; i < preAgingCycles; i++) {
-    updateGenerativeForces(0.48, 19.5, 0.05, 0.4); 
-  }
-  artworkSnapshots[2] = deepCopyGrid(forceGrid);
-  
-  // 4. Snapshot 3: Advanced Delamination (Severe degradation)
-  // Run advanced aging cycles
-  for (let i = 0; i < 160; i++) {
-    updateGenerativeForces(0.55, 23.0, 1.4, 1.2);
-  }
-  artworkSnapshots[3] = deepCopyGrid(forceGrid);
-  
-  // 5. Snapshot 4: Total Entropy (Catastrophic collapse)
-  // Run extreme cycles to simulate total structural decay
-  for (let i = 0; i < 480; i++) {
-    updateGenerativeForces(0.72, 32.0, 2.5, 2.0);
-  }
-  artworkSnapshots[4] = deepCopyGrid(forceGrid);
-  
-  // Restore active grid to Today (Milestone 2) as default starting state
-  forceGrid = deepCopyGrid(artworkSnapshots[2]);
-  activeMilestoneIndex = 2;
-}
+
 
 function renderTimelineSnapshots() {
   const container = document.getElementById('timeline-snapshots');
