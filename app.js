@@ -7,6 +7,7 @@ let activeCycle = 'freeport'; // 'freeport' | 'penthouse' | 'museum' | 'catastro
 let renderMode = 'visible'; // Visible mode always active in Unified Vitrine
 let timeScale = 100; // 1 = normal, 100 = accelerated
 let currentRunSpeed = 100; // Decouples play/pause from speed scale
+let bloomIntensity = 0.95; // Controls the strength of the additive bloom layer
 
 // Diagnostic UI Elements
 let barMechanical, barChemical, barBiological;
@@ -25,6 +26,8 @@ const colors = {
   sapon: [15, 240, 135],        // Vivid Green-Teal (Crystalline Lead Soap Migration)
   biological: [240, 240, 240],   // Warm White (Fungal Mold Creep & Specimen Rot)
   moisture: [230, 110, 20],     // Volcanic Orange (Humidity Saturation Front - abstracted)
+  yellowing: [212, 175, 55],    // Ochre Amber (Natural Varnish Oxidation)
+  grime: [110, 105, 95],        // Soot Grey (Atmospheric Particulate Grime)
   
   // Synthetic Resurrection Accents
   syntheticCyan: [0, 255, 200],  // Neon Cyan (Paraloid B-72 Restoration Polymers)
@@ -397,7 +400,9 @@ const themeColors = {
     bleach: [255, 0, 127],     // Laser Pink (Abstracted)
     sapon: [0, 240, 255],      // Electric Cyan (Abstracted)
     biological: [115, 30, 255], // Royal Purple (Abstracted)
-    stress: [230, 255, 240]    // Fluorophore White (Abstracted)
+    stress: [230, 255, 240],    // Fluorophore White (Abstracted)
+    yellowing: [115, 30, 255],  // Royal Purple (Abstracted)
+    grime: [0, 255, 127]        // Acid Lime (Abstracted)
   },
   naturalism: {
     ramp: [
@@ -415,7 +420,9 @@ const themeColors = {
     bleach: [44, 95, 112],     // Sea-Pine Blue (Abstracted)
     sapon: [107, 112, 92],     // Sage Green (Abstracted)
     biological: [235, 175, 55], // Golden Sunlight (Abstracted)
-    stress: [160, 82, 45]      // Burnt Sienna (Abstracted)
+    stress: [160, 82, 45],      // Burnt Sienna (Abstracted)
+    yellowing: [44, 95, 112],   // Sea-Pine Blue (Abstracted)
+    grime: [235, 175, 55]       // Golden Sunlight (Abstracted)
   },
   rothkoTension: {
     ramp: [
@@ -433,7 +440,9 @@ const themeColors = {
     bleach: [20, 110, 240],     // Cool field (Abstracted)
     sapon: [80, 150, 120],     // Secondary cool (Abstracted)
     biological: [240, 90, 20],  // Warm field (Abstracted)
-    stress: [245, 230, 180]     // Pale sand (Abstracted)
+    stress: [245, 230, 180],    // Pale sand (Abstracted)
+    yellowing: [20, 110, 240],  // Cool Field / Cobalt (Abstracted)
+    grime: [230, 20, 80]        // Tension Break / Crimson (Abstracted)
   },
   morandiCluster: {
     ramp: [
@@ -451,7 +460,9 @@ const themeColors = {
     bleach: [115, 108, 118],    // Lavender echo (Abstracted)
     sapon: [245, 248, 240],     // Light beam (Abstracted)
     biological: [38, 38, 38],   // Shadow (Abstracted)
-    stress: [104, 108, 104]     // Sage dust 2 (Abstracted)
+    stress: [104, 108, 104],    // Sage dust 2 (Abstracted)
+    yellowing: [115, 108, 118], // Lavender Echo (Abstracted)
+    grime: [166, 115, 102]      // Cinnabar Shift (Abstracted)
   },
   thangkaFive: {
     ramp: [
@@ -469,7 +480,9 @@ const themeColors = {
     bleach: [235, 170, 40],     // Orpiment yellow (Abstracted)
     sapon: [24, 122, 85],       // Malachite green (Abstracted)
     biological: [245, 242, 235], // Chalk white (Abstracted)
-    stress: [255, 205, 48]      // Pure gold (Abstracted)
+    stress: [255, 205, 48],     // Pure gold (Abstracted)
+    yellowing: [18, 48, 138],   // Lapis Blue (Abstracted)
+    grime: [38, 64, 115]        // Insulating Bead (Abstracted)
   },
   sacredVestment: {
     ramp: [
@@ -487,7 +500,9 @@ const themeColors = {
     bleach: [77, 25, 94],       // Vestment Light (Abstracted)
     sapon: [184, 194, 202],     // Silver Thread (Abstracted)
     biological: [242, 228, 115], // Gold Refraction (Abstracted)
-    stress: [253, 250, 240]     // Angelic Halo White (Abstracted)
+    stress: [253, 250, 240],    // Angelic Halo White (Abstracted)
+    yellowing: [77, 25, 94],    // Imperial Purple (Abstracted)
+    grime: [184, 194, 202]      // Silver Thread (Abstracted)
   }
 };
 
@@ -655,6 +670,8 @@ function initUIElements() {
   document.getElementById('btn-sapon-mode').addEventListener('click', (e) => setRenderMode('sapon', e.currentTarget));
   document.getElementById('btn-bio-mode').addEventListener('click', (e) => setRenderMode('biological', e.currentTarget));
   document.getElementById('btn-moisture-mode').addEventListener('click', (e) => setRenderMode('moisture', e.currentTarget));
+  document.getElementById('btn-yellowing-mode').addEventListener('click', (e) => setRenderMode('yellowing', e.currentTarget));
+  document.getElementById('btn-grime-mode').addEventListener('click', (e) => setRenderMode('grime', e.currentTarget));
   
   // Simulation admin controls
   const playPauseBtn = document.getElementById('btn-play-pause');
@@ -690,24 +707,51 @@ function initUIElements() {
     });
   }
   
-  // Additive Bloom Toggle Listener
+  // Additive Bloom Toggle & Intensity Listener
   const btnOpal = document.getElementById('btn-toggle-opal');
   const overlayOpal = document.getElementById('bloom-canvas');
-  if (btnOpal && overlayOpal) {
-    btnOpal.addEventListener('click', () => {
-      const isActive = overlayOpal.classList.toggle('active');
+  const sliderBloom = document.getElementById('slider-bloom-intensity');
+  const lblBloom = document.getElementById('lbl-bloom-intensity');
+  if (btnOpal && overlayOpal && sliderBloom && lblBloom) {
+    function applyBloomState(isActive) {
       if (isActive) {
         btnOpal.innerText = "BLOOM COAT ACTIVE";
         btnOpal.style.border = "1px solid var(--accent-green)";
         btnOpal.style.background = "rgba(46, 204, 113, 0.15)";
         btnOpal.style.color = "var(--accent-green)";
+        
+        overlayOpal.style.opacity = bloomIntensity.toString();
+        // Dynamic TouchDesigner Bloom physics scaled by slider intensity
+        let blurVal = Math.round(2 + 10 * bloomIntensity);
+        let brightnessVal = 1.0 + 0.8 * bloomIntensity;
+        let saturateVal = 1.0 + 0.7 * bloomIntensity;
+        overlayOpal.style.filter = `blur(${blurVal}px) brightness(${brightnessVal}) saturate(${saturateVal})`;
       } else {
         btnOpal.innerText = "BLOOM COAT BYPASSED";
         btnOpal.style.border = "1px solid var(--border-color)";
         btnOpal.style.background = "rgba(255, 255, 255, 0.03)";
         btnOpal.style.color = "var(--text-secondary)";
+        
+        overlayOpal.style.opacity = "0";
+        overlayOpal.style.filter = "blur(0px) brightness(1.0) saturate(1.0)";
       }
+    }
+    
+    btnOpal.addEventListener('click', () => {
+      const isActive = overlayOpal.classList.toggle('active');
+      applyBloomState(isActive);
     });
+    
+    sliderBloom.addEventListener('input', (e) => {
+      let val = parseInt(e.target.value);
+      bloomIntensity = val / 100.0;
+      lblBloom.innerText = val + "%";
+      const isActive = overlayOpal.classList.contains('active');
+      applyBloomState(isActive);
+    });
+    
+    // Initial sync on startup
+    applyBloomState(overlayOpal.classList.contains('active'));
   }
   
   // Initialize colormap legend dots to forensic defaults
@@ -720,6 +764,8 @@ function updateLegendColors() {
   const dBleach = document.getElementById('legend-bleach');
   const dSapon = document.getElementById('legend-sapon');
   const dBio = document.getElementById('legend-biological');
+  const dYellowing = document.getElementById('legend-yellowing');
+  const dGrime = document.getElementById('legend-grime');
   
   const currentColors = themeColors[activeTheme] || themeColors.xray;
   
@@ -757,6 +803,20 @@ function updateLegendColors() {
     let b = Math.round(lerp(colors.biological[2], currentColors.biological[2], spectralStainVal));
     dBio.style.background = `rgb(${r}, ${g}, ${b})`;
     dBio.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
+  }
+  if (dYellowing) {
+    let r = Math.round(lerp(colors.yellowing[0], currentColors.yellowing[0], spectralStainVal));
+    let g = Math.round(lerp(colors.yellowing[1], currentColors.yellowing[1], spectralStainVal));
+    let b = Math.round(lerp(colors.yellowing[2], currentColors.yellowing[2], spectralStainVal));
+    dYellowing.style.background = `rgb(${r}, ${g}, ${b})`;
+    dYellowing.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
+  }
+  if (dGrime) {
+    let r = Math.round(lerp(colors.grime[0], currentColors.grime[0], spectralStainVal));
+    let g = Math.round(lerp(colors.grime[1], currentColors.grime[1], spectralStainVal));
+    let b = Math.round(lerp(colors.grime[2], currentColors.grime[2], spectralStainVal));
+    dGrime.style.background = `rgb(${r}, ${g}, ${b})`;
+    dGrime.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
 }
 
@@ -881,6 +941,9 @@ function createForceCell(x, y) {
     soapMigration: 0.0,
     biologicalCreep: 0.0,
     moistureSaturation: 0.0,
+    varnishYellowing: 0.0,
+    surfaceGrime: 0.0,
+    paintChalking: 0.0,
     
     // Dynamic emission and state change fields
     energyFlash: 0.0,
@@ -1664,6 +1727,21 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale
           cell.soapMigration = constrain(cell.soapMigration, 0.0, 0.9);
         }
       }
+      else if (activeArtwork === 'supra') {
+        // Contemporary acrylic: surfactant leaching
+        if (cell.moistureSaturation > 0.35) {
+          cell.soapMigration += (cell.moistureSaturation * 0.0006) * effectiveEnvScale;
+          cell.soapMigration = constrain(cell.soapMigration, 0.0, 0.85);
+        }
+      }
+      else if (activeArtwork === 'thunderDawn') {
+        // Flemish altarpiece: extreme saponification in oil binder
+        if (cell.moistureSaturation > 0.25) {
+          let seamSapon = (cell.moistureSaturation * 0.0013) + (temp * 0.00005);
+          cell.soapMigration += seamSapon * effectiveEnvScale;
+          cell.soapMigration = constrain(cell.soapMigration, 0.0, 1.0);
+        }
+      }
       
       // General Lead Soap Crystallisation Growth (forms gorgeous circular gold-amber islands)
       let soapSpreadChance = min(0.9, 0.08 * speedScale);
@@ -1706,6 +1784,23 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale
             neighbor.bioSusceptibility = max(neighbor.bioSusceptibility, 0.7);
             neighbor.biologicalCreep = max(neighbor.biologicalCreep, cell.biologicalCreep * 0.92);
           }
+        }
+      }
+      
+      // E. ADDITIONAL SLOW DECADE-SCALE CHEMICAL FORCES (Varnish Yellowing, Grime, and Chalking)
+      if (!cell.isRestored) {
+        // 1. Natural Varnish Triterpenoid Oxidation (Yellowing)
+        let yellowingRate = (0.000008 + uv * 0.00018 + (temp - 15.0) * 0.000015) * effectiveEnvScale;
+        cell.varnishYellowing = constrain(cell.varnishYellowing + yellowingRate, 0.0, 1.0);
+        
+        // 2. Atmospheric Carbonaceous Soot & Particulate Grime
+        let grimeRate = (dust * 0.00004 + cell.moistureSaturation * 0.00002) * effectiveEnvScale;
+        cell.surfaceGrime = constrain(cell.surfaceGrime + grimeRate, 0.0, 1.0);
+        
+        // 3. Oil Binder Autoxidation & Pigment Chalking
+        if (cell.photolyticBleach > 0.65 || cell.mechanicalStress > 0.65) {
+          let chalkRate = 0.00028 * (cell.photolyticBleach + cell.mechanicalStress) * effectiveEnvScale;
+          cell.paintChalking = constrain(cell.paintChalking + chalkRate, 0.0, 1.0);
         }
       }
     }
@@ -2426,13 +2521,40 @@ function renderRadarGrid() {
               let tR = lerp(r, colors.crackTip[0], aFlash);
               let tG = lerp(g, colors.crackTip[1], aFlash);
               let tB = lerp(b, colors.crackTip[2], aFlash);
-              
               r = lerp(tR, currentColors.stress[0], spectralStainVal * aFlash);
               g = lerp(tG, currentColors.stress[1], spectralStainVal * aFlash);
               b = lerp(tB, currentColors.stress[2], spectralStainVal * aFlash);
             }
           }
           
+          // Layer 7A: Paint Chalking (Late-stage powdery desaturation)
+          if (cell.paintChalking > 0.02) {
+            let intensity = (r + g + b) / 3.0;
+            r = lerp(r, intensity + 30, cell.paintChalking * 0.85);
+            g = lerp(g, intensity + 30, cell.paintChalking * 0.85);
+            b = lerp(b, intensity + 35, cell.paintChalking * 0.85);
+          }
+          
+          // Layer 7B: Varnish Yellowing & Oxidation (Theme-mapped warm filter / abstract tone)
+          if (cell.varnishYellowing > 0.02) {
+            let yR = lerp(colors.yellowing[0] * 0.7, currentColors.yellowing[0], spectralStainVal);
+            let yG = lerp(colors.yellowing[1] * 0.7, currentColors.yellowing[1], spectralStainVal);
+            let yB = lerp(colors.yellowing[2] * 0.7, currentColors.yellowing[2], spectralStainVal);
+            r = lerp(r, yR, cell.varnishYellowing * 0.75);
+            g = lerp(g, yG, cell.varnishYellowing * 0.75);
+            b = lerp(b, yB, cell.varnishYellowing * 0.75);
+          }
+          
+          // Layer 7C: Surface Grime & Carbonaceous Soot (Theme-mapped dark glaze / abstract tone)
+          if (cell.surfaceGrime > 0.02) {
+            let gR = lerp(colors.grime[0] * 0.4, currentColors.grime[0], spectralStainVal);
+            let gG = lerp(colors.grime[1] * 0.4, currentColors.grime[1], spectralStainVal);
+            let gB = lerp(colors.grime[2] * 0.4, currentColors.grime[2], spectralStainVal);
+            r = lerp(r, gR, cell.surfaceGrime * 0.85);
+            g = lerp(g, gG, cell.surfaceGrime * 0.85);
+            b = lerp(b, gB, cell.surfaceGrime * 0.85);
+          }
+
           // Shimmering high-frequency State-Change & Spatial Edge Threshold highlighting
           // Applied at the end of the visible stack so it sits on top of all layering & void overrides!
           let edgeGlowCombine = max((cell.eatingFlicker || 0.0) * 0.5, cell.decayEdgeGlow || 0.0);
@@ -2460,20 +2582,28 @@ function renderRadarGrid() {
           if (cell.fractureDensity > 0.0 || cell.energyFlash > 0.02) {
             let flash = cell.energyFlash;
             if (cell.fractureDensity > 0.0) {
-              r = lerp(12, 255, flash);
-              g = lerp(2, 255, flash);
-              b = lerp(4, 255, flash);
+              let baseR = lerp(12, 255, flash);
+              let baseG = lerp(2, 255, flash);
+              let baseB = lerp(4, 255, flash);
               
               if (flash > 0.05) {
                 let cool = flash;
-                r = lerp(colors.stress[0] * 0.4, 255, cool);
-                g = lerp(colors.stress[1] * 0.1, 255, cool);
-                b = lerp(colors.stress[2] * 0.2, 255, cool);
+                baseR = lerp(colors.stress[0] * 0.4, 255, cool);
+                baseG = lerp(colors.stress[1] * 0.1, 255, cool);
+                baseB = lerp(colors.stress[2] * 0.2, 255, cool);
               }
+              
+              r = lerp(baseR, currentColors.stress[0], spectralStainVal);
+              g = lerp(baseG, currentColors.stress[1], spectralStainVal);
+              b = lerp(baseB, currentColors.stress[2], spectralStainVal);
             } else {
-              r = lerp(r, colors.crackTip[0], flash);
-              g = lerp(g, colors.crackTip[1], flash);
-              b = lerp(b, colors.crackTip[2], flash);
+              let aFlash = flash * 0.9;
+              let tR = lerp(r, colors.crackTip[0], aFlash);
+              let tG = lerp(g, colors.crackTip[1], aFlash);
+              let tB = lerp(b, colors.crackTip[2], aFlash);
+              r = lerp(tR, currentColors.stress[0], spectralStainVal * aFlash);
+              g = lerp(tG, currentColors.stress[1], spectralStainVal * aFlash);
+              b = lerp(tB, currentColors.stress[2], spectralStainVal * aFlash);
             }
           }
         } 
@@ -2497,9 +2627,12 @@ function renderRadarGrid() {
           // Ambient UV flux overlay
           if (uvStrength > 0.02) {
             let aUV = uvStrength * 0.65;
-            r = lerp(r, colors.uvFlux[0], aUV);
-            g = lerp(g, colors.uvFlux[1], aUV);
-            b = lerp(b, colors.uvFlux[2], aUV);
+            let uvR = lerp(colors.uvFlux[0], currentColors.uvFlux[0], spectralStainVal);
+            let uvG = lerp(colors.uvFlux[1], currentColors.uvFlux[1], spectralStainVal);
+            let uvB = lerp(colors.uvFlux[2], currentColors.uvFlux[2], spectralStainVal);
+            r = lerp(r, uvR, aUV);
+            g = lerp(g, uvG, aUV);
+            b = lerp(b, uvB, aUV);
           }
           // Bleach fade overlay
           if (cell.photolyticBleach > 0.02) {
@@ -2510,9 +2643,12 @@ function renderRadarGrid() {
             let bleachBreathe = 0.85 + 0.15 * Math.sin(frameCount * 0.03 + y * 0.1);
             aBleach *= bleachBreathe;
             
-            r = lerp(r, colors.bleach[0] * 0.5, aBleach);
-            g = lerp(g, colors.bleach[1] * 0.5, aBleach);
-            b = lerp(b, colors.bleach[2] * 0.65, aBleach);
+            let bR = lerp(colors.bleach[0] * 0.5, currentColors.bleach[0], spectralStainVal);
+            let bG = lerp(colors.bleach[1] * 0.5, currentColors.bleach[1], spectralStainVal);
+            let bB = lerp(colors.bleach[2] * 0.65, currentColors.bleach[2], spectralStainVal);
+            r = lerp(r, bR, aBleach);
+            g = lerp(g, bG, aBleach);
+            b = lerp(b, bB, aBleach);
             
             if (fullyBleached > 0.94) {
               r = lerp(r, 6, 0.7);
@@ -2530,9 +2666,12 @@ function renderRadarGrid() {
             let soapTwinkle = 0.3 + 0.7 * noise(x * 0.8, y * 0.8, frameCount * 0.06) * activity;
             let aSoap = cell.soapMigration * 0.85 * (0.4 + 0.6 * soapTwinkle);
             
-            r = lerp(r, colors.sapon[0] * 0.6, aSoap);
-            g = lerp(g, colors.sapon[1] * 0.6, aSoap);
-            b = lerp(b, colors.sapon[2] * 0.15, aSoap);
+            let sR = lerp(colors.sapon[0] * 0.6, currentColors.sapon[0], spectralStainVal);
+            let sG = lerp(colors.sapon[1] * 0.6, currentColors.sapon[1], spectralStainVal);
+            let sB = lerp(colors.sapon[2] * 0.15, currentColors.sapon[2], spectralStainVal);
+            r = lerp(r, sR, aSoap);
+            g = lerp(g, sG, aSoap);
+            b = lerp(b, sB, aSoap);
             
             if (fullyCooked > 0.94) {
               r = lerp(r, 35, 0.45);
@@ -2550,9 +2689,12 @@ function renderRadarGrid() {
             let bioPulse = 0.5 + 0.5 * Math.sin(frameCount * 0.022 + (x + y) * 0.15);
             let aBio = cell.biologicalCreep * 0.85 * (0.5 + 0.5 * bioPulse * activity);
             
-            r = lerp(r, colors.biological[0] * 0.15, aBio);
-            g = lerp(g, colors.biological[1] * 0.8, aBio);
-            b = lerp(b, colors.biological[2] * 0.5, aBio);
+            let bioR = lerp(colors.biological[0] * 0.15, currentColors.biological[0], spectralStainVal);
+            let bioG = lerp(colors.biological[1] * 0.8, currentColors.biological[1], spectralStainVal);
+            let bioB = lerp(colors.biological[2] * 0.5, currentColors.biological[2], spectralStainVal);
+            r = lerp(r, bioR, aBio);
+            g = lerp(g, bioG, aBio);
+            b = lerp(b, bioB, aBio);
             
             if (fullyCooked > 0.94) {
               r = lerp(r, 2, 0.75);
@@ -2567,9 +2709,36 @@ function renderRadarGrid() {
             let aMoist = cell.moistureSaturation * 0.85;
             let moistTide = 0.8 + 0.2 * Math.sin(frameCount * 0.012 + x * 0.06);
             aMoist *= moistTide;
-            r = lerp(r, colors.moisture[0] * 0.4, aMoist);
-            g = lerp(g, colors.moisture[1] * 0.4, aMoist);
-            b = lerp(b, colors.moisture[2] * 0.95, aMoist);
+            let mR = lerp(colors.moisture[0] * 0.4, currentColors.moisture[0], spectralStainVal);
+            let mG = lerp(colors.moisture[1] * 0.4, currentColors.moisture[1], spectralStainVal);
+            let mB = lerp(colors.moisture[2] * 0.95, currentColors.moisture[2], spectralStainVal);
+            r = lerp(r, mR, aMoist);
+            g = lerp(g, mG, aMoist);
+            b = lerp(b, mB, aMoist);
+          }
+        }
+        else if (renderMode === 'yellowing') {
+          // ==================== VARNISH YELLOWING VIEW ====================
+          if (cell.varnishYellowing > 0.02) {
+            let aYell = cell.varnishYellowing * 0.9;
+            let yR = lerp(colors.yellowing[0] * 0.6, currentColors.yellowing[0], spectralStainVal);
+            let yG = lerp(colors.yellowing[1] * 0.6, currentColors.yellowing[1], spectralStainVal);
+            let yB = lerp(colors.yellowing[2] * 0.15, currentColors.yellowing[2], spectralStainVal);
+            r = lerp(r, yR, aYell);
+            g = lerp(g, yG, aYell);
+            b = lerp(b, yB, aYell);
+          }
+        }
+        else if (renderMode === 'grime') {
+          // ==================== SURFACE GRIME VIEW ====================
+          if (cell.surfaceGrime > 0.02) {
+            let aGrime = cell.surfaceGrime * 0.9;
+            let gR = lerp(colors.grime[0] * 0.5, currentColors.grime[0], spectralStainVal);
+            let gG = lerp(colors.grime[1] * 0.5, currentColors.grime[1], spectralStainVal);
+            let gB = lerp(colors.grime[2] * 0.5, currentColors.grime[2], spectralStainVal);
+            r = lerp(r, gR, aGrime);
+            g = lerp(g, gG, aGrime);
+            b = lerp(b, gB, aGrime);
           }
         }
       }
@@ -2590,8 +2759,8 @@ function renderRadarGrid() {
         let highFreqNoise = noise(x * 0.35, y * 0.35, frameCount * 0.22);
         let flickerVal = max((cell.eatingFlicker || 0.0) * 0.5, cell.decayEdgeGlow || 0.0) * highFreqNoise;
         
-        let haloSize = cellPitch * (1.35 + localEdgeGlow * 0.55 + flickerVal * 2.85);
-        let haloAlpha = 65 + localEdgeGlow * 105 + flickerVal * 190;
+        let haloSize = cellPitch * (1.35 + localEdgeGlow * 0.55 + flickerVal * 2.85) * (0.4 + 0.6 * bloomIntensity);
+        let haloAlpha = (65 + localEdgeGlow * 105 + flickerVal * 190) * bloomIntensity;
         haloAlpha = constrain(haloAlpha, 0, 255);
         
         let cr = Math.round(constrain(r, 0, 255));
@@ -2651,6 +2820,9 @@ function updateAssetMetrics() {
   let totalMech = 0;
   let totalChem = 0;
   let totalBio = 0;
+  let totalYellowing = 0;
+  let totalGrime = 0;
+  let totalChalking = 0;
   let count = cols * rows;
   
   // Dynamic material decay accumulators
@@ -2664,6 +2836,9 @@ function updateAssetMetrics() {
       totalMech += cellMech;
       totalChem += cell.photolyticBleach;
       totalBio += cell.biologicalCreep;
+      totalYellowing += cell.varnishYellowing;
+      totalGrime += cell.surfaceGrime;
+      totalChalking += cell.paintChalking;
       
       // Track material type decay
       let mat = cell.materialType || 'Paint Film';
@@ -2778,6 +2953,27 @@ function updateAssetMetrics() {
       <span style='color: ${colorStr}; font-weight: 500;'>${integrity.toFixed(1)}% intact</span>
     </div>`;
   }
+  
+  // Append slow chemical degradation rates
+  let avgYellowing = (totalYellowing / count) * 100.0;
+  let avgGrime = (totalGrime / count) * 100.0;
+  let avgChalking = (totalChalking / count) * 100.0;
+  
+  matHTML += "<h5 style='margin: 10px 0 6px 0; font-size: 0.72rem; font-family: var(--font-mono); color: var(--accent-orange); letter-spacing: 0.5px; text-transform: uppercase; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 8px;'>[Atmospheric & Varnish Degradation]</h5>";
+  
+  matHTML += `<div class='material-row' style='display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; font-family: var(--font-mono); margin-bottom: 5px; line-height: 1.2;'>
+    <span style='color: #a0a5b5;'>Varnish Yellowing:</span>
+    <span style='color: var(--accent-gold); font-weight: 500;'>${avgYellowing.toFixed(1)}% shifted</span>
+  </div>`;
+  matHTML += `<div class='material-row' style='display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; font-family: var(--font-mono); margin-bottom: 5px; line-height: 1.2;'>
+    <span style='color: #a0a5b5;'>Surface Soot/Grime:</span>
+    <span style='color: var(--text-muted); font-weight: 500;'>${avgGrime.toFixed(1)}% density</span>
+  </div>`;
+  matHTML += `<div class='material-row' style='display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; font-family: var(--font-mono); margin-bottom: 5px; line-height: 1.2;'>
+    <span style='color: #a0a5b5;'>Paint Binder Chalking:</span>
+    <span style='color: #f5f6fa; font-weight: 500;'>${avgChalking.toFixed(1)}% crumbled</span>
+  </div>`;
+  
   matHTML += "</div>";
   notesBody.innerHTML = artData.notes + matHTML;
   
@@ -2900,6 +3096,53 @@ function switchArtwork(artworkKey) {
   
   // Re-render timeline snapshots HUD panel and sync colors
   renderTimelineSnapshots();
+  
+  // Update molecular migration tab and legend labels to match specific substrate chemistry
+  let tabLabel = "Molecular Migration";
+  let legendLabel = "Molecular Migration";
+  let tabTooltip = "Crystalline metal soaps, surfactant leaching, and plasticizer exudation";
+  
+  if (artworkKey === 'basquiat') {
+    tabLabel = "Surfactant Leaching";
+    legendLabel = "Surfactant Leaching";
+    tabTooltip = "Tacky binder separation and surfactant leaching under ambient temperature gradients";
+  } else if (artworkKey === 'rothko') {
+    tabLabel = "Lead Soaps";
+    legendLabel = "Lead Soaps";
+    tabTooltip = "Crystalline lead soap nodes and saponified lipid migration fields";
+  } else if (artworkKey === 'hirst') {
+    tabLabel = "Plasticizer Exudation";
+    legendLabel = "Plasticizer Exudation";
+    tabTooltip = "Loss of organic resilience, plasticizer exudation, and lipid migration in synthetic glosses";
+  } else if (artworkKey === 'klimt') {
+    tabLabel = "Metal Soaps";
+    legendLabel = "Metal Soaps";
+    tabTooltip = "Lead/zinc soap bubbles and crystalline eruptions through metallic foil layers";
+  } else if (artworkKey === 'pollock') {
+    tabLabel = "Binder Separation";
+    legendLabel = "Binder Separation";
+    tabTooltip = "Exudation of synthetic binders and plasticizers from commercial alkyd enamels";
+  } else if (artworkKey === 'magritte') {
+    tabLabel = "Zinc Efflorescence";
+    legendLabel = "Zinc Efflorescence";
+    tabTooltip = "Zinc soap efflorescence and micro-crystalline white haze formation";
+  } else if (artworkKey === 'supra') {
+    tabLabel = "Surfactant Leaching";
+    legendLabel = "Surfactant Leaching";
+    tabTooltip = "Surfactant leaching and polymer exudation in contemporary acrylic mediums";
+  } else if (artworkKey === 'thunderDawn') {
+    tabLabel = "Lead Soaps";
+    legendLabel = "Lead Soaps";
+    tabTooltip = "Linseed oil saponification and crystalline fatty acid migration";
+  }
+  
+  let tabLabelEl = document.getElementById('lbl-sapon-tab');
+  if (tabLabelEl) tabLabelEl.innerText = tabLabel;
+  let legendLabelEl = document.getElementById('lbl-sapon-legend');
+  if (legendLabelEl) legendLabelEl.innerText = legendLabel;
+  let tabBtn = document.getElementById('btn-sapon-mode');
+  if (tabBtn) tabBtn.title = tabTooltip;
+  
   updateLegendColors();
 }
 
@@ -3438,6 +3681,9 @@ function deepCopyGrid(src) {
         soapMigration: c.soapMigration,
         biologicalCreep: c.biologicalCreep,
         moistureSaturation: c.moistureSaturation,
+        varnishYellowing: c.varnishYellowing !== undefined ? c.varnishYellowing : 0.0,
+        surfaceGrime: c.surfaceGrime !== undefined ? c.surfaceGrime : 0.0,
+        paintChalking: c.paintChalking !== undefined ? c.paintChalking : 0.0,
         energyFlash: c.energyFlash,
         isRestored: c.isRestored,
         materialType: c.materialType,

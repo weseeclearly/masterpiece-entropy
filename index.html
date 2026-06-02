@@ -53,9 +53,9 @@
           <span class="tab-indicator" style="background-color: var(--accent-purple);"></span>
           Photochemical Bleach
         </button>
-        <button class="layer-tab" id="btn-sapon-mode" title="Crystalline lead soap nodes and saponified lipid migration fields">
+        <button class="layer-tab" id="btn-sapon-mode" title="Crystalline metal soaps, surfactant leaching, and plasticizer exudation">
           <span class="tab-indicator" style="background-color: var(--accent-gold);"></span>
-          Lead Soaps
+          <span id="lbl-sapon-tab">Molecular Migration</span>
         </button>
         <button class="layer-tab" id="btn-bio-mode" title="Butterfly specimen chitin collapse and green mold creep networks">
           <span class="tab-indicator" style="background-color: var(--accent-green);"></span>
@@ -64,6 +64,14 @@
         <button class="layer-tab" id="btn-moisture-mode" title="Ambient relative humidity absorption and water saturation front diffusion">
           <span class="tab-indicator" style="background-color: var(--accent-blue);"></span>
           Moisture
+        </button>
+        <button class="layer-tab" id="btn-yellowing-mode" title="Natural resin varnish oxidation and slow autoxidative amber yellowing">
+          <span class="tab-indicator" style="background-color: var(--accent-orange);"></span>
+          Varnish Yellowing
+        </button>
+        <button class="layer-tab" id="btn-grime-mode" title="Atmospheric carbonaceous soot and particulate grime crust deposition">
+          <span class="tab-indicator" style="background-color: var(--text-muted);"></span>
+          Surface Grime
         </button>
       </div>
       
@@ -101,7 +109,7 @@
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
               <span id="legend-sapon" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(100, 180, 120); box-shadow: 0 0 6px rgb(100, 180, 120); transition: var(--transition-smooth);"></span>
-              <span style="color: var(--text-secondary);">Lead Soaps</span>
+              <span id="lbl-sapon-legend" style="color: var(--text-secondary);">Molecular Migration</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
               <span id="legend-biological" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(240, 240, 240); box-shadow: 0 0 6px rgb(240, 240, 240); transition: var(--transition-smooth);"></span>
@@ -110,6 +118,14 @@
             <div style="display: flex; align-items: center; gap: 6px;">
               <span id="legend-synthetic" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(0, 255, 255); box-shadow: 0 0 6px rgb(0, 255, 255); transition: var(--transition-smooth);"></span>
               <span style="color: var(--text-secondary);">Synthetic Resin</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="legend-yellowing" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(212, 175, 55); box-shadow: 0 0 6px rgb(212, 175, 55); transition: var(--transition-smooth);"></span>
+              <span style="color: var(--text-secondary);">Varnish Yellowing</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="legend-grime" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(110, 105, 95); box-shadow: 0 0 6px rgb(110, 105, 95); transition: var(--transition-smooth);"></span>
+              <span style="color: var(--text-secondary);">Surface Grime</span>
             </div>
           </div>
         </div>
@@ -361,12 +377,19 @@
           </div>
         </div>
 
-        <!-- Additive Bloom Toggle -->
-        <div class="slider-container" style="margin-top: 10px; margin-bottom: 5px; padding: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.65rem; color: var(--text-primary); font-weight: 600; font-family: var(--font-mono); letter-spacing: 0.5px;">ADDITIVE BLOOM SHIELD (TOUCHDESIGNER)</span>
-          <button id="btn-toggle-opal" style="font-size: 0.55rem; padding: 4px 8px; border-radius: 3px; font-family: var(--font-mono); cursor: pointer; border: 1px solid var(--accent-green); background: rgba(46, 204, 113, 0.15); color: var(--accent-green); transition: var(--transition-smooth); outline: none;" title="Toggle hardware-accelerated TouchDesigner-style additive bloom that blends glowing coronas on top of crisp pixels">
-            BLOOM COAT ACTIVE
-          </button>
+        <!-- Additive Bloom Toggle & Slider -->
+        <div class="slider-container" style="margin-top: 10px; margin-bottom: 5px; padding: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 6px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 0.65rem; color: var(--text-primary); font-weight: 600; font-family: var(--font-mono); letter-spacing: 0.5px;">ADDITIVE BLOOM COAT (TOUCHDESIGNER)</span>
+            <button id="btn-toggle-opal" style="font-size: 0.55rem; padding: 4px 8px; border-radius: 3px; font-family: var(--font-mono); cursor: pointer; border: 1px solid var(--accent-green); background: rgba(46, 204, 113, 0.15); color: var(--accent-green); transition: var(--transition-smooth); outline: none;" title="Toggle hardware-accelerated TouchDesigner-style additive bloom that blends glowing coronas on top of crisp pixels">
+              BLOOM COAT ACTIVE
+            </button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 0.58rem; color: var(--text-secondary); font-family: var(--font-mono);">Bloom Intensity</span>
+            <span id="lbl-bloom-intensity" style="font-size: 0.65rem; color: var(--accent-green); font-family: var(--font-mono); font-weight: 600;">95%</span>
+          </div>
+          <input type="range" id="slider-bloom-intensity" min="0" max="100" value="95" class="premium-slider" style="width: 100%; accent-color: var(--accent-green); cursor: pointer; background: rgba(255, 255, 255, 0.1); height: 4px; border-radius: 2px;" title="Adjust the strength of the additive bloom layer">
         </div>
 
 
