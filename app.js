@@ -2281,9 +2281,8 @@ function renderRadarGrid() {
           let dDecayX = valR - valL;
           let dDecayY = valD - valU;
           let decayEdgeGradient = Math.sqrt(dDecayX * dDecayX + dDecayY * dDecayY);
-          let decayEdgeGlow = map(decayEdgeGradient, 0.05, 0.90, 0.0, 1.0);
-          decayEdgeGlow = constrain(decayEdgeGlow * activeStainVal, 0.0, 1.0);
-          cell.decayEdgeGlow = decayEdgeGlow; // Save on cell for down-loop access
+          let decayEdgeGlow = map(decayEdgeGradient, 0.02, 0.60, 0.0, 1.0, true);
+          cell.decayEdgeGlow = decayEdgeGlow; // Pure spatial edge gradient, independent of stain!
           
           let baseIntensity = (rawR + rawG + rawB) / 3.0;
           
@@ -2501,10 +2500,11 @@ function renderRadarGrid() {
           let edgeGlowCombine = max((cell.eatingFlicker || 0.0) * 0.5, cell.decayEdgeGlow || 0.0);
           if (edgeGlowCombine > 0.02) {
             let flickerNoise = noise(x * 0.45, y * 0.45, frameCount * 0.25);
-            let highlightFactor = edgeGlowCombine * (0.45 + 0.55 * flickerNoise) * activeStainVal;
+            // Decouple from activeStainVal to make it fully active in standard forensic mode as well!
+            let highlightFactor = edgeGlowCombine * (0.45 + 0.55 * flickerNoise);
             
-            // Pull the theme's high-energy stress/tension color as highlight anchor
-            const highlightColor = currentColors.stress || [255, 30, 95];
+            // In spectral stain mode, use the theme's stress color. In forensic mode, use colors.stress.
+            const highlightColor = (spectralStainVal > 0.1) ? (currentColors.stress || [255, 30, 95]) : colors.stress;
             
             // Blend high-chroma hot-spots and flare up the brightness on both sides of the edge
             r = lerp(r, highlightColor[0] * 1.5, highlightFactor * 0.9);
