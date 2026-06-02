@@ -8,7 +8,7 @@ let renderMode = 'visible'; // Visible mode always active in Unified Vitrine
 let timeScale = 100; // 1 = normal, 100 = accelerated
 let currentRunSpeed = 100; // Decouples play/pause from speed scale
 let bloomIntensity = 0.30; // Controls the strength of the additive bloom layer
-let autoConservationActive = false; // Controls the autonomous conservation field loop
+let autoConservationActive = true; // Controls the autonomous conservation field loop
 let lastConservationYear = 0;
 let lastConservationHour = 0;
 
@@ -774,6 +774,20 @@ function initUIElements() {
   const btnAutoConserve = document.getElementById('btn-auto-conserve');
   if (btnAutoConserve) {
     btnAutoConserve.addEventListener('click', toggleAutoConservation);
+    // Initial UI sync for default active state
+    if (autoConservationActive) {
+      btnAutoConserve.innerText = "🛡️ AUTO-CONSERVATION: ACTIVE";
+      btnAutoConserve.style.background = "rgba(30, 144, 255, 0.15)";
+      btnAutoConserve.style.color = "var(--accent-blue)";
+      btnAutoConserve.style.borderColor = "rgba(30, 144, 255, 0.4)";
+      btnAutoConserve.style.boxShadow = "0 0 8px rgba(30, 144, 255, 0.25)";
+    } else {
+      btnAutoConserve.innerText = "🛡️ AUTO-CONSERVATION: INACTIVE";
+      btnAutoConserve.style.background = "rgba(30, 144, 255, 0.05)";
+      btnAutoConserve.style.color = "var(--accent-blue)";
+      btnAutoConserve.style.borderColor = "rgba(30, 144, 255, 0.2)";
+      btnAutoConserve.style.boxShadow = "none";
+    }
   }
   
   // Initialize colormap legend dots to forensic defaults
