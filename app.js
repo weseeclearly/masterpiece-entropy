@@ -295,6 +295,7 @@ let environmentStates = {
 };
 
 // Premium Theme Color Mappings for the Spectral Stain Mode (target colors at 100% stain)
+// Encodes cross-cultural and 20th-century color heuristics including Wada's Japanese palettes and Rothko's tension
 const themeColors = {
   xray: {
     moisture: [0, 240, 255],      // Neon cyan
@@ -311,8 +312,57 @@ const themeColors = {
     sapon: [160, 82, 45],         // Deep burnt sienna
     biological: [107, 112, 92],   // Sage-green botanical creep
     stress: [166, 75, 45]         // Earthy rust/clay crack network
+  },
+  wadaSoft: {
+    moisture: [20, 52, 240],      // Electric Cobalt Blue
+    uvFlux: [128, 109, 110],      // Dusty Heather Quartz
+    bleach: [231, 242, 248],      // Warm Calcite Silver
+    sapon: [255, 186, 0],         // Luminous Mineral Yellow
+    biological: [100, 115, 90],   // Organic botanical sage harmony
+    stress: [254, 80, 0]          // Vermilion Pigment Red
+  },
+  wadaSharp: {
+    moisture: [26, 20, 98],       // Deep Midnight Indigo
+    uvFlux: [116, 16, 160],       // Vivid Imperial Purple
+    bleach: [255, 151, 0],        // Saffron Amber Gold
+    sapon: [255, 151, 0],         // Saffron Amber Gold
+    biological: [38, 14, 21],     // Obsidian Charcoal Black
+    stress: [138, 0, 21]          // Burnt Alizarin Crimson
+  },
+  rothkoTension: {
+    moisture: [20, 110, 240],     // Cool Field (Cobalt)
+    uvFlux: [240, 90, 20],        // Warm Field (Tangerine)
+    bleach: [245, 230, 180],      // Mediator (Pale Sand)
+    sapon: [220, 160, 40],        // Gold Glaze (Amber Ochre)
+    biological: [80, 150, 120],   // Secondary Cool (Emerald)
+    stress: [230, 20, 80]         // Tension Break (Crimson Pink)
+  },
+  fukinsei: {
+    moisture: [30, 45, 55],       // The Void (Slate)
+    uvFlux: [50, 60, 65],         // Void Shadow (Charcoal)
+    bleach: [235, 230, 220],      // Counter-Void (Alabaster)
+    sapon: [245, 200, 50],        // Kinetic Spark (Sunlit Gold)
+    biological: [95, 105, 90],    // Liminal Tone (Lichen)
+    stress: [210, 45, 45]         // The Anchor (Saturated Cinnabar)
+  },
+  kasaneNioi: {
+    moisture: [20, 30, 50],       // Heian Deepest Indigo
+    uvFlux: [40, 65, 105],        // Mid Indigo
+    bleach: [210, 225, 245],      // Ethereal White/Blue
+    sapon: [100, 140, 190],       // Heian Dusty Blue
+    biological: [70, 100, 145],   // Slate Blue
+    stress: [140, 180, 220]       // Sky Blue
+  },
+  atmosphericDecay: {
+    moisture: [30, 50, 90],       // Deep Atmosphere (Ocean)
+    uvFlux: [160, 110, 180],      // Distance Tone (Mountain Haze)
+    bleach: [235, 225, 210],      // Pale Atmosphere (Ethereal Sky)
+    sapon: [195, 125, 60],        // Earth Warmth (Ochre Sienna)
+    biological: [90, 120, 85],     // Lichen Green
+    stress: [180, 50, 30]         // Warm Step (Terracotta)
   }
 };
+
 
 
 // Force Grid Dimensions (Calculated dynamically to ensure zero sub-pixel aliasing)
@@ -1784,6 +1834,102 @@ function renderRadarGrid() {
               specR = lerp(0, 255, (intensity - 130) / 125);
               specG = lerp(255, 120, (intensity - 130) / 125);
               specB = lerp(150, 0, (intensity - 130) / 125);
+            }
+          } else if (activeTheme === 'wadaSoft') {
+            // Japanese Wada Soft Mineral Ramp: Cobalt -> Heather Quartz -> Mineral Yellow -> Calcite Silver
+            if (intensity < 60) {
+              // Cobalt Blue [20, 52, 240] to Heather Quartz [128, 109, 110]
+              specR = lerp(20, 128, intensity / 60);
+              specG = lerp(52, 109, intensity / 60);
+              specB = lerp(240, 110, intensity / 60);
+            } else if (intensity < 135) {
+              // Heather Quartz to Luminous Mineral Yellow [255, 186, 0]
+              specR = lerp(128, 255, (intensity - 60) / 75);
+              specG = lerp(109, 186, (intensity - 60) / 75);
+              specB = lerp(110, 0, (intensity - 60) / 75);
+            } else {
+              // Mineral Yellow to Calcite Silver [231, 242, 248]
+              specR = lerp(255, 231, (intensity - 135) / 120);
+              specG = lerp(186, 242, (intensity - 135) / 120);
+              specB = lerp(0, 248, (intensity - 135) / 120);
+            }
+          } else if (activeTheme === 'wadaSharp') {
+            // Japanese Wada Sharp Imperial Ramp: Obsidian Black -> Midnight Indigo -> Imperial Purple -> Saffron Gold
+            if (intensity < 60) {
+              // Obsidian Black [38, 14, 21] to Midnight Indigo [26, 20, 98]
+              specR = lerp(38, 26, intensity / 60);
+              specG = lerp(14, 20, intensity / 60);
+              specB = lerp(21, 98, intensity / 60);
+            } else if (intensity < 135) {
+              // Midnight Indigo to Vivid Imperial Purple [116, 16, 160]
+              specR = lerp(26, 116, (intensity - 60) / 75);
+              specG = lerp(20, 16, (intensity - 60) / 75);
+              specB = lerp(98, 160, (intensity - 60) / 75);
+            } else {
+              // Purple to Saffron Amber Gold [255, 151, 0]
+              specR = lerp(116, 255, (intensity - 135) / 120);
+              specG = lerp(16, 151, (intensity - 135) / 120);
+              specB = lerp(160, 0, (intensity - 135) / 120);
+            }
+          } else if (activeTheme === 'rothkoTension') {
+            // Rothko/Wada Isoluminant Tension: Cool Field [20, 110, 240] -> Mediator [245, 230, 180] -> Warm Field [240, 90, 20] -> Tension Break [230, 20, 80]
+            if (intensity < 60) {
+              specR = lerp(20, 245, intensity / 60);
+              specG = lerp(110, 230, intensity / 60);
+              specB = lerp(240, 180, intensity / 60);
+            } else if (intensity < 135) {
+              specR = lerp(245, 240, (intensity - 60) / 75);
+              specG = lerp(230, 90, (intensity - 60) / 75);
+              specB = lerp(180, 20, (intensity - 60) / 75);
+            } else {
+              specR = lerp(240, 230, (intensity - 135) / 120);
+              specG = lerp(90, 20, (intensity - 135) / 120);
+              specB = lerp(20, 80, (intensity - 135) / 120);
+            }
+          } else if (activeTheme === 'fukinsei') {
+            // Zen/Rothko Fukinsei Asymmetry: Slate Void [30, 45, 55] -> Lichen Liminal [95, 105, 90] -> Cinnabar Anchor [210, 45, 45] -> Kinetic Gold [245, 200, 50]
+            if (intensity < 60) {
+              specR = lerp(30, 95, intensity / 60);
+              specG = lerp(45, 105, intensity / 60);
+              specB = lerp(55, 90, intensity / 60);
+            } else if (intensity < 135) {
+              specR = lerp(95, 210, (intensity - 60) / 75);
+              specG = lerp(105, 45, (intensity - 60) / 75);
+              specB = lerp(90, 45, (intensity - 60) / 75);
+            } else {
+              specR = lerp(210, 245, (intensity - 135) / 120);
+              specG = lerp(45, 200, (intensity - 135) / 120);
+              specB = lerp(45, 50, (intensity - 135) / 120);
+            }
+          } else if (activeTheme === 'kasaneNioi') {
+            // Heian Kasane Layering (Nioi): Deepest Indigo [20, 30, 50] -> Slate Blue [70, 100, 145] -> Dusty Blue [100, 140, 190] -> Ethereal White/Blue [210, 225, 245]
+            if (intensity < 60) {
+              specR = lerp(20, 70, intensity / 60);
+              specG = lerp(30, 100, intensity / 60);
+              specB = lerp(50, 145, intensity / 60);
+            } else if (intensity < 135) {
+              specR = lerp(70, 100, (intensity - 60) / 75);
+              specG = lerp(100, 140, (intensity - 60) / 75);
+              specB = lerp(145, 190, (intensity - 60) / 75);
+            } else {
+              specR = lerp(100, 210, (intensity - 135) / 120);
+              specG = lerp(140, 225, (intensity - 135) / 120);
+              specB = lerp(190, 245, (intensity - 135) / 120);
+            }
+          } else if (activeTheme === 'atmosphericDecay') {
+            // Atmospheric Decay (Bierstadt/Bokashi): Deep Ocean [30, 50, 90] -> Lichen Green [90, 120, 85] -> Ochre Sienna [195, 125, 60] -> Ethereal Sky [235, 225, 210]
+            if (intensity < 60) {
+              specR = lerp(30, 90, intensity / 60);
+              specG = lerp(50, 120, intensity / 60);
+              specB = lerp(90, 85, intensity / 60);
+            } else if (intensity < 135) {
+              specR = lerp(90, 195, (intensity - 60) / 75);
+              specG = lerp(120, 125, (intensity - 60) / 75);
+              specB = lerp(85, 60, (intensity - 60) / 75);
+            } else {
+              specR = lerp(195, 235, (intensity - 135) / 120);
+              specG = lerp(125, 225, (intensity - 135) / 120);
+              specB = lerp(60, 210, (intensity - 135) / 120);
             }
           } else {
             // Naturalism theme color ramp (Umber/sienna shadows -> Sage-green -> Sienna clay -> Alabaster white)
