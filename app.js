@@ -940,9 +940,8 @@ function draw() {
   if (assetStatus === 'restoring') {
     runResurrectionScan();
   } else if (!isViewingSnapshot) {
-    const steps = timeScale;
-    for (let s = 0; s < steps; s++) {
-      updateGenerativeForces(rh, temp, uv, dust);
+    if (timeScale > 0) {
+      updateGenerativeForces(rh, temp, uv, dust, undefined, timeScale);
     }
     // Deep copy and preserve current live simulation state
     liveSimulationGrid = deepCopyGrid(forceGrid);
@@ -1067,270 +1066,286 @@ function createForceCell(x, y) {
 function configureSubstrateFields() {
   let img = artworkImages[activeArtwork];
   
+  let useFallback = true;
+  
   if (img && img.width > 10) {
-    // 1:1 Authentic downsampled color extraction directly from loaded image asset!
-    for (let x = 0; x < cols; x++) {
-      for (let y = 0; y < rows; y++) {
-        let cell = forceGrid[x][y];
+    try {
+      img.loadPixels();
       
-      // Dynamic decay temporal rate-of-change tracker (eating front)
-      let prevDecay = cell.moistureSaturation + cell.photolyticBleach + cell.soapMigration + cell.biologicalCreep + cell.fractureDensity;
-        cell.chemSusceptibility = 0.52;
-        cell.bioSusceptibility = 0.15;
-        
-        let imgX = Math.floor(map(x, 0, cols, 0, img.width));
-        let imgY = Math.floor(map(y, 0, rows, 0, img.height));
-        
-        let col = img.get(imgX, imgY);
-        let r = 0, g = 0, b = 0;
-        
-        if (col && col.length >= 3 && typeof col[0] === 'number') {
-          cell.origR = col[0];
-          cell.origG = col[1];
-          cell.origB = col[2];
-          r = col[0];
-          g = col[1];
-          b = col[2];
-        } else {
-          cell.origR = 0;
-          cell.origG = 0;
-          cell.origB = 0;
-        }
-        
-        // Dynamic material mappings and composition classification
-        if (activeArtwork === 'basquiat') {
-          // Target archetype colors for continuous, high-fidelity material RBF mapping
-          const cLinen = [82, 61, 41];
-          const cDark = [35, 35, 40];
-          const cRed = [200, 45, 55];
-          const cYellow = [230, 180, 30];
-          const cWhite = [230, 230, 230];
+      // Verify pixels read works to catch CORS taint immediately
+      let testVal = img.pixels[0];
+      if (typeof testVal !== 'number') {
+        throw new Error("Empty pixels array or unreadable.");
+      }
+      
+      useFallback = false;
+      
+      // Dynamic color reference sampling of the canvas background for hirst
+      let bgR = 236, bgG = 234, bgB = 228;
+      if (activeArtwork === 'hirst') {
+        bgR = img.pixels[0];
+        bgG = img.pixels[1];
+        bgB = img.pixels[2];
+      }
+      
+      for (let x = 0; x < cols; x++) {
+        for (let y = 0; y < rows; y++) {
+          let cell = forceGrid[x][y];
+          let prevDecay = cell.moistureSaturation + cell.photolyticBleach + cell.soapMigration + cell.biologicalCreep + cell.fractureDensity;
+          cell.chemSusceptibility = 0.52;
+          cell.bioSusceptibility = 0.15;
           
-          // Calculate Euclidean distances in 3D RGB color space
-          let dLinen = dist(r, g, b, cLinen[0], cLinen[1], cLinen[2]);
-          let dDark = dist(r, g, b, cDark[0], cDark[1], cDark[2]);
-          let dRed = dist(r, g, b, cRed[0], cRed[1], cRed[2]);
-          let dYellow = dist(r, g, b, cYellow[0], cYellow[1], cYellow[2]);
-          let dWhite = dist(r, g, b, cWhite[0], cWhite[1], cWhite[2]);
+          let imgX = Math.floor(map(x, 0, cols, 0, img.width));
+          let imgY = Math.floor(map(y, 0, rows, 0, img.height));
+          imgX = constrain(imgX, 0, img.width - 1);
+          imgY = constrain(imgY, 0, img.height - 1);
           
-          // Smooth Gaussian Radial Basis Functions to determine pixel blend contribution
-          let wLinen = Math.exp(-dLinen * dLinen / 1800);
-          let wDark = Math.exp(-dDark * dDark / 1600);
-          let wRed = Math.exp(-dRed * dRed / 1200);
-          let wYellow = Math.exp(-dYellow * dYellow / 1500);
-          let wWhite = Math.exp(-dWhite * dWhite / 1200);
+          let pixIdx = (imgY * img.width + imgX) * 4;
+          let r = img.pixels[pixIdx];
+          let g = img.pixels[pixIdx + 1];
+          let b = img.pixels[pixIdx + 2];
           
-          // Prussian Blue acts as the absolute background baseline weight
-          let wBlue = max(0.0, 1.0 - (wLinen + wDark + wRed + wYellow + wWhite));
+          cell.origR = r;
+          cell.origG = g;
+          cell.origB = b;
           
-          // Normalize weights to sum perfectly to 1.0, ensuring mathematical parameter conservation
-          let sumW = wLinen + wDark + wRed + wYellow + wWhite + wBlue;
-          if (sumW > 0.001) {
-            wLinen /= sumW;
-            wDark /= sumW;
-            wRed /= sumW;
-            wYellow /= sumW;
-            wWhite /= sumW;
-            wBlue /= sumW;
-          }
-          
-          // Continuous, noise-free property interpolation directly mapped from pixel color values
-          cell.stressLimit = wBlue * 0.75 + wLinen * 0.34 + wDark * 0.90 + wRed * 0.85 + wYellow * 0.65 + wWhite * 0.25;
-          cell.chemSusceptibility = wBlue * 0.52 + wLinen * 0.20 + wDark * 0.10 + wRed * 0.30 + wYellow * 0.60 + wWhite * 0.80;
-          cell.bioSusceptibility = wBlue * 0.15 + wLinen * 0.40 + wDark * 0.05 + wRed * 0.10 + wYellow * 0.12 + wWhite * 0.25;
-          cell.tackiness = wDark * 0.60 + wWhite * 0.80 + wYellow * 0.30;
-          cell.moistureSaturation = wLinen * 0.40;
-          
-          // Define discrete category tags based on the dominant material weight for text UI readouts
-          let maxW = Math.max(wLinen, wDark, wRed, wYellow, wWhite, wBlue);
-          if (maxW === wLinen) {
-            cell.materialType = 'Unprimed Linen Support';
-          } else if (maxW === wDark) {
-            if (y < rows * 0.78 && x > cols * 0.15 && x < cols * 0.85) {
-              cell.isSkull = true;
-              cell.materialType = 'Nitrocellulose Spray';
-            } else {
-              cell.isCrown = true;
-              cell.materialType = 'Linseed-Wax Oilstick';
+          // Dynamic material mappings and composition classification
+          if (activeArtwork === 'basquiat') {
+            // Target archetype colors for continuous, high-fidelity material RBF mapping
+            const cLinen = [82, 61, 41];
+            const cDark = [35, 35, 40];
+            const cRed = [200, 45, 55];
+            const cYellow = [230, 180, 30];
+            const cWhite = [230, 230, 230];
+            
+            // Calculate Euclidean distances in 3D RGB color space
+            let dLinen = dist(r, g, b, cLinen[0], cLinen[1], cLinen[2]);
+            let dDark = dist(r, g, b, cDark[0], cDark[1], cDark[2]);
+            let dRed = dist(r, g, b, cRed[0], cRed[1], cRed[2]);
+            let dYellow = dist(r, g, b, cYellow[0], cYellow[1], cYellow[2]);
+            let dWhite = dist(r, g, b, cWhite[0], cWhite[1], cWhite[2]);
+            
+            // Smooth Gaussian Radial Basis Functions to determine pixel blend contribution
+            let wLinen = Math.exp(-dLinen * dLinen / 1800);
+            let wDark = Math.exp(-dDark * dDark / 1600);
+            let wRed = Math.exp(-dRed * dRed / 1200);
+            let wYellow = Math.exp(-dYellow * dYellow / 1500);
+            let wWhite = Math.exp(-dWhite * dWhite / 1200);
+            
+            // Prussian Blue acts as the absolute background baseline weight
+            let wBlue = max(0.0, 1.0 - (wLinen + wDark + wRed + wYellow + wWhite));
+            
+            // Normalize weights to sum perfectly to 1.0, ensuring mathematical parameter conservation
+            let sumW = wLinen + wDark + wRed + wYellow + wWhite + wBlue;
+            if (sumW > 0.001) {
+              wLinen /= sumW;
+              wDark /= sumW;
+              wRed /= sumW;
+              wYellow /= sumW;
+              wWhite /= sumW;
+              wBlue /= sumW;
             }
-          } else if (maxW === wRed) {
-            cell.isBasquiatTongue = true;
-            cell.materialType = 'Vivid Acrylic Splash';
-          } else if (maxW === wYellow) {
-            cell.isBasquiatTeeth = true;
-            cell.materialType = 'Mustard Oil Paint';
-          } else if (maxW === wWhite) {
-            if (y > rows * 0.08 && y < rows * 0.26 && x > cols * 0.3 && x < cols * 0.8) {
-              cell.isBasquiatScribble = true;
-              cell.materialType = 'White Oilstick Script';
+            
+            // Continuous, noise-free property interpolation directly mapped from pixel color values
+            cell.stressLimit = wBlue * 0.75 + wLinen * 0.34 + wDark * 0.90 + wRed * 0.85 + wYellow * 0.65 + wWhite * 0.25;
+            cell.chemSusceptibility = wBlue * 0.52 + wLinen * 0.20 + wDark * 0.10 + wRed * 0.30 + wYellow * 0.60 + wWhite * 0.80;
+            cell.bioSusceptibility = wBlue * 0.15 + wLinen * 0.40 + wDark * 0.05 + wRed * 0.10 + wYellow * 0.12 + wWhite * 0.25;
+            cell.tackiness = wDark * 0.60 + wWhite * 0.80 + wYellow * 0.30;
+            cell.moistureSaturation = wLinen * 0.40;
+            
+            // Define discrete category tags based on the dominant material weight for text UI readouts
+            let maxW = Math.max(wLinen, wDark, wRed, wYellow, wWhite, wBlue);
+            if (maxW === wLinen) {
+              cell.materialType = 'Unprimed Linen Support';
+            } else if (maxW === wDark) {
+              if (y < rows * 0.78 && x > cols * 0.15 && x < cols * 0.85) {
+                cell.isSkull = true;
+                cell.materialType = 'Nitrocellulose Spray';
+              } else {
+                cell.isCrown = true;
+                cell.materialType = 'Linseed-Wax Oilstick';
+              }
+            } else if (maxW === wRed) {
+              cell.isBasquiatTongue = true;
+              cell.materialType = 'Vivid Acrylic Splash';
+            } else if (maxW === wYellow) {
+              cell.isBasquiatTeeth = true;
+              cell.materialType = 'Mustard Oil Paint';
+            } else if (maxW === wWhite) {
+              if (y > rows * 0.08 && y < rows * 0.26 && x > cols * 0.3 && x < cols * 0.8) {
+                cell.isBasquiatScribble = true;
+                cell.materialType = 'White Oilstick Script';
+              } else {
+                cell.isBasquiatScribble = true;
+                cell.materialType = 'White Oilstick Highlight';
+              }
             } else {
-              cell.isBasquiatScribble = true;
-              cell.materialType = 'White Oilstick Highlight';
+              cell.materialType = 'Prussian Blue Acrylic';
             }
-          } else {
-            cell.materialType = 'Prussian Blue Acrylic';
-          }
-        } else if (activeArtwork === 'rothko') {
-          cell.stressLimit = 0.96; 
-          cell.bioSusceptibility = 0.05;
-          
-          // Classify by actual color to avoid hard horizontal lines
-          let isViolet = (b > g * 1.25 && r > g * 1.05);
-          let isGreen = (g > r * 1.15 && g > b * 1.05);
-          let isRed = (r > g * 1.4 && r > b * 1.4);
-          
-          if (isViolet) {
-            cell.chemSusceptibility = 0.65;
-            cell.materialType = 'Violet Dammar Wash';
-            cell.stressLimit = 0.88;
-          } else if (isGreen) {
-            cell.chemSusceptibility = 0.38;
-            cell.materialType = 'Viridian Egg Glaze';
-            cell.stressLimit = 0.92;
-          } else if (isRed) {
-            cell.chemSusceptibility = 0.99;
-            cell.materialType = 'PR49 Lithol Red Azo';
-            cell.stressLimit = 0.96;
-          } else {
-            // Organic transitional zone (seam)
-            cell.isRothkoSeam = true;
-            cell.stressLimit = 0.55;
-            cell.materialType = 'Hygroscopic Animal Glue';
-          }
-        } 
-        else if (activeArtwork === 'hirst') {
-          // Dynamic color reference sampling of the canvas background
-          let bgCol = img.get(0, 0);
-          let bgR = bgCol[0], bgG = bgCol[1], bgB = bgCol[2];
-          let colorDist = dist(r, g, b, bgR, bgG, bgB);
-          
-          if (colorDist > 32) {
-            // High-contrast coordinates indicate organic butterfly specimen
-            cell.isHirstSpecimen = true;
-            cell.bioSusceptibility = 0.99; 
-            cell.stressLimit = 0.88;
-            cell.materialType = 'Morpho Peleides Chitin';
-          } else {
-            // Clean glossy background
-            cell.stressLimit = 0.24; 
-            cell.chemSusceptibility = 0.1;
-            cell.bioSusceptibility = 0.01;
-            cell.materialType = 'Commercial Ripolin Alkyd';
-          }
-        } 
-        else if (activeArtwork === 'klimt') {
-          cell.stressLimit = 0.65;
-          cell.chemSusceptibility = 0.2;
-          cell.bioSusceptibility = 0.0;
-          cell.materialType = 'Chalk Ground Gesso';
-          
-          let isGold = (r > 130 && g > 90 && b < 90 && r > g);
-          let isSilver = (r > 165 && g > 165 && b > 165 && Math.abs(r - g) < 20 && Math.abs(g - b) < 20);
-          let isFlesh = (r > 180 && g > 140 && b > 115 && r > g && g > b);
-          let isWhiteDress = (r > 185 && g > 185 && b > 185 && !isSilver);
-          
-          if (isSilver) {
-            cell.isKlimtSilver = true;
-            cell.stressLimit = 0.28;
-            cell.chemSusceptibility = 0.99;
-            cell.materialType = 'Genuine Silver Leaf';
-          } else if (isGold) {
-            cell.isKlimtGold = true;
-            cell.stressLimit = 0.35;
-            cell.materialType = 'Byzantine Gold Leaf';
-          } else if (isFlesh) {
-            cell.materialType = 'Delicate Portrait Glaze';
-            cell.chemSusceptibility = 0.3;
+          } else if (activeArtwork === 'rothko') {
+            cell.stressLimit = 0.96; 
+            cell.bioSusceptibility = 0.05;
+            
+            // Classify by actual color to avoid hard horizontal lines
+            let isViolet = (b > g * 1.25 && r > g * 1.05);
+            let isGreen = (g > r * 1.15 && g > b * 1.05);
+            let isRed = (r > g * 1.4 && r > b * 1.4);
+            
+            if (isViolet) {
+              cell.chemSusceptibility = 0.65;
+              cell.materialType = 'Violet Dammar Wash';
+              cell.stressLimit = 0.88;
+            } else if (isGreen) {
+              cell.chemSusceptibility = 0.38;
+              cell.materialType = 'Viridian Egg Glaze';
+              cell.stressLimit = 0.92;
+            } else if (isRed) {
+              cell.chemSusceptibility = 0.99;
+              cell.materialType = 'PR49 Lithol Red Azo';
+              cell.stressLimit = 0.96;
+            } else {
+              // Organic transitional zone (seam)
+              cell.isRothkoSeam = true;
+              cell.stressLimit = 0.55;
+              cell.materialType = 'Hygroscopic Animal Glue';
+            }
+          } 
+          else if (activeArtwork === 'hirst') {
+            let colorDist = dist(r, g, b, bgR, bgG, bgB);
+            
+            if (colorDist > 32) {
+              // High-contrast coordinates indicate organic butterfly specimen
+              cell.isHirstSpecimen = true;
+              cell.bioSusceptibility = 0.99; 
+              cell.stressLimit = 0.88;
+              cell.materialType = 'Morpho Peleides Chitin';
+            } else {
+              // Clean glossy background
+              cell.stressLimit = 0.24; 
+              cell.chemSusceptibility = 0.1;
+              cell.bioSusceptibility = 0.01;
+              cell.materialType = 'Commercial Ripolin Alkyd';
+            }
+          } 
+          else if (activeArtwork === 'klimt') {
+            cell.stressLimit = 0.65;
+            cell.chemSusceptibility = 0.2;
+            cell.bioSusceptibility = 0.0;
+            cell.materialType = 'Chalk Ground Gesso';
+            
+            let isGold = (r > 130 && g > 90 && b < 90 && r > g);
+            let isSilver = (r > 165 && g > 165 && b > 165 && Math.abs(r - g) < 20 && Math.abs(g - b) < 20);
+            let isFlesh = (r > 180 && g > 140 && b > 115 && r > g && g > b);
+            let isWhiteDress = (r > 185 && g > 185 && b > 185 && !isSilver);
+            
+            if (isSilver) {
+              cell.isKlimtSilver = true;
+              cell.stressLimit = 0.28;
+              cell.chemSusceptibility = 0.99;
+              cell.materialType = 'Genuine Silver Leaf';
+            } else if (isGold) {
+              cell.isKlimtGold = true;
+              cell.stressLimit = 0.35;
+              cell.materialType = 'Byzantine Gold Leaf';
+            } else if (isFlesh) {
+              cell.materialType = 'Delicate Portrait Glaze';
+              cell.chemSusceptibility = 0.3;
+              cell.stressLimit = 0.85;
+            } else if (isWhiteDress) {
+              cell.materialType = 'Flowing Silk Gown';
+              cell.chemSusceptibility = 0.4;
+              cell.stressLimit = 0.75;
+            }
+          } 
+          else if (activeArtwork === 'pollock') {
             cell.stressLimit = 0.85;
-          } else if (isWhiteDress) {
-            cell.materialType = 'Flowing Silk Gown';
-            cell.chemSusceptibility = 0.4;
-            cell.stressLimit = 0.75;
+            cell.chemSusceptibility = 0.0;
+            cell.bioSusceptibility = 0.0;
+            cell.materialType = 'Rigid Masonite Board';
+            
+            let isBlack = (r < 55 && g < 55 && b < 55);
+            let isWhite = (r > 195 && g > 195 && b > 195);
+            let isYellow = (r > 160 && g > 140 && b < 90 && r > g);
+            let isRed = (r > 150 && g < 80 && b < 80);
+            let isSilver = (r > 100 && g > 100 && b > 100 && Math.abs(r - g) < 15 && Math.abs(g - b) < 15);
+            
+            if (isBlack || isWhite || isYellow || isRed || isSilver) {
+              cell.isPollockDrip = true;
+              cell.stressLimit = 0.3;
+              if (isBlack) cell.materialType = 'Liquid Black Alkyd';
+              else if (isWhite) cell.materialType = 'Titanium White Enamel';
+              else if (isYellow) cell.materialType = 'Chrome Yellow Drip';
+              else if (isRed) cell.materialType = 'Alizarin Crimson Splatter';
+              else cell.materialType = 'Liquid Silver Enamel';
+            }
+          } 
+          else if (activeArtwork === 'magritte') {
+            cell.stressLimit = 0.92;
+            cell.bioSusceptibility = 0.0;
+            
+            let isWarmLight = (r > 180 && g > 150 && b < 110 && y > rows * 0.5);
+            let isSky = (b > 100 || (r > 120 && g > 120 && b > 120 && y < rows * 0.6));
+            
+            if (isWarmLight) {
+              cell.materialType = 'Luminescent Streetlamp Wash';
+              cell.chemSusceptibility = 0.05;
+              cell.stressLimit = 0.95;
+            } else if (isSky) {
+              cell.isMagritteSky = true;
+              cell.chemSusceptibility = 0.95; 
+              cell.materialType = 'Prussian Blue Sky';
+            } else {
+              cell.isMagritteForest = true;
+              cell.bioSusceptibility = 0.85; 
+              cell.stressLimit = 0.72;
+              cell.materialType = 'Zinc Oxide Oil Base';
+            }
           }
-        } 
-        else if (activeArtwork === 'pollock') {
-          cell.stressLimit = 0.85;
-          cell.chemSusceptibility = 0.0;
-          cell.bioSusceptibility = 0.0;
-          cell.materialType = 'Rigid Masonite Board';
           
-          let isBlack = (r < 55 && g < 55 && b < 55);
-          let isWhite = (r > 195 && g > 195 && b > 195);
-          let isYellow = (r > 160 && g > 140 && b < 90 && r > g);
-          let isRed = (r > 150 && g < 80 && b < 80);
-          let isSilver = (r > 100 && g > 100 && b > 100 && Math.abs(r - g) < 15 && Math.abs(g - b) < 15);
+          let nextDecay = cell.moistureSaturation + cell.photolyticBleach + cell.soapMigration + cell.biologicalCreep + cell.fractureDensity;
+          let decayDelta = Math.abs(nextDecay - prevDecay);
           
-          if (isBlack || isWhite || isYellow || isRed || isSilver) {
-            cell.isPollockDrip = true;
-            cell.stressLimit = 0.3;
-            if (isBlack) cell.materialType = 'Liquid Black Alkyd';
-            else if (isWhite) cell.materialType = 'Titanium White Enamel';
-            else if (isYellow) cell.materialType = 'Chrome Yellow Drip';
-            else if (isRed) cell.materialType = 'Alizarin Crimson Splatter';
-            else cell.materialType = 'Liquid Silver Enamel';
-          }
-        } 
-        else if (activeArtwork === 'magritte') {
-          cell.stressLimit = 0.92;
-          cell.bioSusceptibility = 0.0;
-          
-          let isWarmLight = (r > 180 && g > 150 && b < 110 && y > rows * 0.5);
-          let isSky = (b > 100 || (r > 120 && g > 120 && b > 120 && y < rows * 0.6));
-          
-          if (isWarmLight) {
-            cell.materialType = 'Luminescent Streetlamp Wash';
-            cell.chemSusceptibility = 0.05;
-            cell.stressLimit = 0.95;
-          } else if (isSky) {
-            cell.isMagritteSky = true;
-            cell.chemSusceptibility = 0.95; 
-            cell.materialType = 'Prussian Blue Sky';
+          // Gate and update eating front flicker zone
+          if (decayDelta > 0.0002) {
+            cell.eatingFlicker = lerp(cell.eatingFlicker || 0.0, 1.0, 0.45);
           } else {
-            cell.isMagritteForest = true;
-            cell.bioSusceptibility = 0.85; 
-            cell.stressLimit = 0.72;
-            cell.materialType = 'Zinc Oxide Oil Base';
-          }
-        }
-        
-        let nextDecay = cell.moistureSaturation + cell.photolyticBleach + cell.soapMigration + cell.biologicalCreep + cell.fractureDensity;
-        let decayDelta = Math.abs(nextDecay - prevDecay);
-        
-        // Gate and update eating front flicker zone
-        if (decayDelta > 0.0002) {
-          cell.eatingFlicker = lerp(cell.eatingFlicker || 0.0, 1.0, 0.45);
-        } else {
-          if (cell.eatingFlicker > 0.01) {
-            cell.eatingFlicker *= 0.93; // slowly cool down the flicker zone
-          } else {
-            cell.eatingFlicker = 0.0;
+            if (cell.eatingFlicker > 0.01) {
+              cell.eatingFlicker *= 0.93; // slowly cool down the flicker zone
+            } else {
+              cell.eatingFlicker = 0.0;
+            }
           }
         }
       }
-    }
-    
-    // Initialize default edgeGradient to 0
-    for (let x = 0; x < cols; x++) {
-      for (let y = 0; y < rows; y++) {
-        forceGrid[x][y].edgeGradient = 0.0;
+      
+      // Initialize default edgeGradient to 0
+      for (let x = 0; x < cols; x++) {
+        for (let y = 0; y < rows; y++) {
+          forceGrid[x][y].edgeGradient = 0.0;
+        }
       }
-    }
-    
-    // Compute 2D spatial gradients (Sobel central difference) to map composition contours
-    for (let x = 1; x < cols - 1; x++) {
-      for (let y = 1; y < rows - 1; y++) {
-        let cell = forceGrid[x][y];
-        let valL = (forceGrid[x-1][y].origR + forceGrid[x-1][y].origG + forceGrid[x-1][y].origB) / 3.0;
-        let valR = (forceGrid[x+1][y].origR + forceGrid[x+1][y].origG + forceGrid[x+1][y].origB) / 3.0;
-        let valU = (forceGrid[x][y-1].origR + forceGrid[x][y-1].origG + forceGrid[x][y-1].origB) / 3.0;
-        let valD = (forceGrid[x][y+1].origR + forceGrid[x][y+1].origG + forceGrid[x][y+1].origB) / 3.0;
-        
-        let dx = valR - valL;
-        let dy = valD - valU;
-        cell.edgeGradient = Math.sqrt(dx*dx + dy*dy);
+      
+      // Compute 2D spatial gradients (Sobel central difference) to map composition contours
+      for (let x = 1; x < cols - 1; x++) {
+        for (let y = 1; y < rows - 1; y++) {
+          let cell = forceGrid[x][y];
+          let valL = (forceGrid[x-1][y].origR + forceGrid[x-1][y].origG + forceGrid[x-1][y].origB) / 3.0;
+          let valR = (forceGrid[x+1][y].origR + forceGrid[x+1][y].origG + forceGrid[x+1][y].origB) / 3.0;
+          let valU = (forceGrid[x][y-1].origR + forceGrid[x][y-1].origG + forceGrid[x][y-1].origB) / 3.0;
+          let valD = (forceGrid[x][y+1].origR + forceGrid[x][y+1].origG + forceGrid[x][y+1].origB) / 3.0;
+          
+          let dx = valR - valL;
+          let dy = valD - valU;
+          cell.edgeGradient = Math.sqrt(dx*dx + dy*dy);
+        }
       }
+    } catch (e) {
+      console.warn("Failed to load image pixels (CORS or other issue), falling back to procedural generation:", e);
+      useFallback = true;
     }
-  } else {
+  }
+  
+  if (useFallback) {
     // FALLBACK PROCEDURAL GENERATION (Ensures perfect backward compatibility if image assets are not loaded yet)
     if (activeArtwork === 'basquiat') {
       for (let x = 0; x < cols; x++) {
@@ -1561,7 +1576,7 @@ function configureSubstrateFields() {
   }
 }
 
-function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale) {
+function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale = 1.0) {
   let deltaRH = Math.abs(rh - 0.5);
   let tempDrop = Math.max(0, 21.0 - temp);
   
@@ -1581,6 +1596,8 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale) {
     }
   }
   
+  let effectiveEnvScale = envScale * speedScale;
+  
   // Simultaneous organic UV light undulation using slowly shifting 2D noise
   let timeVal = frameCount * 0.005 * timeScale;
   
@@ -1595,11 +1612,12 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale) {
         cell.energyFlash = 0.0;
       }
       
-      // Moisture diffusion
+      // Moisture diffusion: scaled by speedScale with a cap to maintain numerical stability
       if (x === 0 || y === 0 || x === cols - 1 || y === rows - 1) {
         cell.moistureSaturation = lerp(cell.moistureSaturation, rh, 0.18);
       } else {
-        cell.moistureSaturation = cell.moistureSaturation + 0.03 * (
+        let diffCoeff = min(0.22, 0.03 * speedScale);
+        cell.moistureSaturation = cell.moistureSaturation + diffCoeff * (
           forceGrid[x+1][y].moistureSaturation +
           forceGrid[x-1][y].moistureSaturation +
           forceGrid[x][y+1].moistureSaturation +
@@ -1614,7 +1632,7 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale) {
         let relaxation = max(0.06, 1.0 - (mechanicalDecay / 100.0) * 0.85);
         
         // Scaled down for highly gradual and realistic craquelure growth over years
-        let strain = ((deltaRH * 0.00018) + (tempDrop * 0.000036) + (cell.moistureSaturation * 0.000068)) * relaxation * envScale;
+        let strain = ((deltaRH * 0.00018) + (tempDrop * 0.000036) + (cell.moistureSaturation * 0.000068)) * relaxation * effectiveEnvScale;
         
         if (activeArtwork === 'basquiat') {
           strain *= 2.4;
@@ -1649,7 +1667,8 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale) {
         
         // Pre-fracture warning sparks at high-stress threshold coordinates
         let strainRatio = cell.mechanicalStress / cell.stressLimit;
-        if (strainRatio > 0.85 && random(1.0) < 0.018) {
+        let flashChance = min(0.9, 0.018 * speedScale);
+        if (strainRatio > 0.85 && random(1.0) < flashChance) {
           cell.energyFlash = random(0.25, 0.55); // high-tension warning flash
         }
         
@@ -1661,7 +1680,7 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale) {
         if (x < 3 || y < 3 || x > cols - 4 || y > rows - 4 || cell.isRothkoSeam || cell.isKlimtGold) {
           canCrack = true; // Stretcher frames and layered seams act as boundary stress concentrators
         } 
-        else if (activeArtwork === 'pollock' && cell.isPollockDrip && random(1.0) < 0.04) {
+        else if (activeArtwork === 'pollock' && cell.isPollockDrip && random(1.0) < min(0.9, 0.04 * speedScale)) {
           canCrack = true; // Poured drip tracks act as localized micro-shrinkage seeds
         }
         else {
@@ -1692,7 +1711,7 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale) {
         let localUV = uv * uvNoise * spotIntensity;
         
         if (localUV > 0.02) {
-          cell.photolyticBleach += localUV * 0.0019 * cell.chemSusceptibility * envScale;
+          cell.photolyticBleach += localUV * 0.0019 * cell.chemSusceptibility * effectiveEnvScale;
           cell.photolyticBleach = constrain(cell.photolyticBleach, 0.0, 1.0);
         }
       }
@@ -1700,43 +1719,44 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale) {
       // C. MOLECULAR MIGRATION & SAPONIFICATION (Amber / Gold)
       if (activeArtwork === 'basquiat') {
         if (cell.isSkull) {
-          cell.soapMigration += (dust * 0.00004) * envScale;
+          cell.soapMigration += (dust * 0.00004) * effectiveEnvScale;
           cell.soapMigration = constrain(cell.soapMigration, 0.0, 1.0);
         }
       } 
       else if (activeArtwork === 'rothko') {
         if (cell.isRothkoSeam && cell.moistureSaturation > 0.3) {
           let seamSapon = (cell.moistureSaturation * 0.0011) + (tempDrop * 0.00015);
-          cell.soapMigration += seamSapon * envScale;
+          cell.soapMigration += seamSapon * effectiveEnvScale;
           cell.soapMigration = constrain(cell.soapMigration, 0.0, 1.0);
         } else if (cell.moistureSaturation > 0.4) {
-          cell.soapMigration += (cell.moistureSaturation * 0.0003) * envScale;
+          cell.soapMigration += (cell.moistureSaturation * 0.0003) * effectiveEnvScale;
           cell.soapMigration = constrain(cell.soapMigration, 0.0, 1.0);
         }
       }
       else if (activeArtwork === 'hirst') {
         if (!cell.isHirstSpecimen) {
-          cell.soapMigration += ((uv * 0.00019) + (temp * 0.00001)) * envScale;
+          cell.soapMigration += ((uv * 0.00019) + (temp * 0.00001)) * effectiveEnvScale;
           cell.soapMigration = constrain(cell.soapMigration, 0.0, 0.95);
         }
       }
       else if (activeArtwork === 'klimt') {
         // Klimt: lead soaps erupting circular amber nodes through gold foil under moisture
         if (cell.isKlimtGold && cell.moistureSaturation > 0.35) {
-          cell.soapMigration += (cell.moistureSaturation * 0.001) * envScale;
+          cell.soapMigration += (cell.moistureSaturation * 0.001) * effectiveEnvScale;
           cell.soapMigration = constrain(cell.soapMigration, 0.0, 1.0);
         }
       }
       else if (activeArtwork === 'magritte') {
         // Magritte: zinc oxide soaps forming surface efflorescence haze in deep forest
         if (cell.isMagritteForest && cell.moistureSaturation > 0.28) {
-          cell.soapMigration += (cell.moistureSaturation * 0.0008) * envScale;
+          cell.soapMigration += (cell.moistureSaturation * 0.0008) * effectiveEnvScale;
           cell.soapMigration = constrain(cell.soapMigration, 0.0, 0.9);
         }
       }
       
       // General Lead Soap Crystallisation Growth (forms gorgeous circular gold-amber islands)
-      if (cell.soapMigration > 0.35 && random(1.0) < 0.08) {
+      let soapSpreadChance = min(0.9, 0.08 * speedScale);
+      if (cell.soapMigration > 0.35 && random(1.0) < soapSpreadChance) {
         let rx = x + Math.floor(random(-1, 2));
         let ry = y + Math.floor(random(-1, 2));
         if (rx >= 0 && rx < cols && ry >= 0 && ry < rows) {
@@ -1760,11 +1780,12 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale) {
           }
         }
         
-        cell.biologicalCreep += (bioGrowth + temp * 0.00003) * envScale;
+        cell.biologicalCreep += (bioGrowth + temp * 0.00003) * effectiveEnvScale;
         cell.biologicalCreep = constrain(cell.biologicalCreep, 0.0, 1.0);
         
         // Fungal creep spreads in elegant, dendritic branches (creeping teal hyphae networks)
-        if (cell.biologicalCreep > 0.35 && random(1.0) < 0.12) {
+        let bioSpreadChance = min(0.9, 0.12 * speedScale);
+        if (cell.biologicalCreep > 0.35 && random(1.0) < bioSpreadChance) {
           let dirX = random(1.0) < 0.5 ? 1 : -1;
           let dirY = random(1.0) < 0.5 ? 1 : -1;
           let rx = x + (random(1.0) < 0.6 ? dirX : 0);
@@ -3097,16 +3118,27 @@ function setRenderMode(mode, targetBtn) {
 
 function toggleTimeScale() {
   const btn = document.getElementById('btn-toggle-time');
-  if (timeScale === 1) {
-    timeScale = 30;
+  if (!btn) return;
+  
+  if (timeScale > 0) {
+    // Save current active speed so we can restore it when resuming
+    btn.setAttribute('data-prev-speed', timeScale);
+    timeScale = 0;
+    btn.innerText = "Run Simulation";
+    btn.style.color = "var(--accent-green)";
+    btn.style.borderColor = "rgba(46, 204, 113, 0.3)";
+  } else {
+    // Restore previous speed or default to 100
+    let prevSpeed = parseInt(btn.getAttribute('data-prev-speed')) || 100;
+    timeScale = prevSpeed;
     btn.innerText = "Pause Clock";
     btn.style.color = "var(--accent-red)";
     btn.style.borderColor = "rgba(255, 56, 56, 0.3)";
-  } else {
-    timeScale = 1;
-    btn.innerText = "Accelerate x100";
-    btn.style.color = "var(--text-primary)";
-    btn.style.borderColor = "var(--border-color)";
+    
+    // If we were viewing a historical snapshot, start the live simulation RUNNING from this snapshot!
+    if (isViewingSnapshot) {
+      startLiveSimulationFromCurrentState();
+    }
   }
 }
 
@@ -3236,131 +3268,6 @@ function updateTimelineHUD() {
   }
 }
 
-function renderTimelineSnapshots() {
-  const container = document.getElementById('timeline-snapshots');
-  if (!container) return;
-  
-  container.innerHTML = "";
-  const list = milestones[activeArtwork];
-  
-  list.forEach((m, idx) => {
-    const card = document.createElement('div');
-    card.className = 'timeline-card';
-    if (idx === activeMilestoneIndex) {
-      card.classList.add('active');
-    }
-    
-    card.innerHTML = `
-      <div class="timeline-card-header">
-        <span class="timeline-card-year">${m.year}</span>
-        <span class="timeline-card-status">${m.status}</span>
-      </div>
-      <div class="timeline-card-desc" title="${m.desc}">${m.label}: ${m.desc}</div>
-    `;
-    
-    card.addEventListener('click', () => goToMilestone(idx));
-    container.appendChild(card);
-  });
-}
-
-function goToMilestone(index) {
-  activeMilestoneIndex = index;
-  
-  // Pause clock if we select a historical milestone (so it doesn't decay immediately out of it)
-  // but if they click "Today" we can let it run!
-  const btnToggle = document.getElementById('btn-toggle-time');
-  if (index !== 2 && timeScale !== 1) {
-    timeScale = 1;
-    if (btnToggle) {
-      btnToggle.innerText = "Accelerate x100";
-      btnToggle.style.color = "var(--text-primary)";
-      btnToggle.style.borderColor = "var(--border-color)";
-    }
-  }
-  
-  const m = milestones[activeArtwork][activeCycle][index];
-  
-  // Deep-copy the saved authentic physics snapshot into our active forceGrid!
-  if (artworkSnapshots[index]) {
-    forceGrid = deepCopyGrid(artworkSnapshots[index]);
-  }
-  
-  // Update timeline simulated frames directly from elapsed native units
-  if (activeCycle === 'freeport') {
-    simulatedFrames = m.elapsed * 12;
-  } else if (activeCycle === 'penthouse') {
-    simulatedFrames = m.elapsed * 365;
-  } else if (activeCycle === 'museum') {
-    simulatedFrames = m.elapsed * 52;
-  } else if (activeCycle === 'catastrophe') {
-    simulatedFrames = m.elapsed * 6; // 6 frames per hour (1 frame = 10 minutes)
-  }
-  
-  // Sync the diagnostic UI sliders and integrity indicators
-  updateAssetMetrics();
-  updateTimelineHUD();
-  
-  // Highlight card as active in DOM
-  const cards = document.querySelectorAll('.timeline-card');
-  cards.forEach((c, idx) => {
-    if (idx === index) c.classList.add('active');
-    else c.classList.remove('active');
-  });
-  
-  // Append milestone specific analysis note
-  let liveHTML = `<div class='milestone-note' style='margin-top: 10px; padding: 8px; background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 4px; font-size: 0.68rem; line-height: 1.3;'>
-    <span style='color: var(--accent-gold); font-family: var(--font-mono); font-weight: 600; display: block; margin-bottom: 2px;'>[Forensic Milestone — ${m.label} (${m.year})]</span>
-    <span style='color: var(--text-primary);'>${m.desc}</span>
-  </div>`;
-  
-  notesBody.innerHTML = liveHTML + notesBody.innerHTML;
-}
-
-function deepCopyGrid(src) {
-  let dest = [];
-  for (let x = 0; x < src.length; x++) {
-    dest[x] = [];
-    for (let y = 0; y < src[x].length; y++) {
-      let c = src[x][y];
-      dest[x][y] = {
-        x: c.x, y: c.y,
-        mechanicalStress: c.mechanicalStress,
-        fractureDensity: c.fractureDensity,
-        photolyticBleach: c.photolyticBleach,
-        soapMigration: c.soapMigration,
-        biologicalCreep: c.biologicalCreep,
-        moistureSaturation: c.moistureSaturation,
-        energyFlash: c.energyFlash,
-        isRestored: c.isRestored,
-        materialType: c.materialType,
-        isCrown: c.isCrown, isSkull: c.isSkull,
-        isBasquiatTeeth: c.isBasquiatTeeth, isBasquiatTongue: c.isBasquiatTongue,
-        isBasquiatScribble: c.isBasquiatScribble, isRothkoSeam: c.isRothkoSeam,
-        isHirstSpecimen: c.isHirstSpecimen, isKlimtGold: c.isKlimtGold,
-        isKlimtSilver: c.isKlimtSilver, isPollockDrip: c.isPollockDrip,
-        isMagritteSky: c.isMagritteSky, isMagritteForest: c.isMagritteForest,
-        origR: c.origR, origG: c.origG, origB: c.origB,
-        stressLimit: c.stressLimit,
-        chemSusceptibility: c.chemSusceptibility,
-        bioSusceptibility: c.bioSusceptibility,
-        tackiness: c.tackiness
-      };
-    }
-  }
-  return dest;
-}
-
-function resetGridToPristine() {
-  forceGrid = [];
-  for (let x = 0; x < cols; x++) {
-    forceGrid[x] = [];
-    for (let y = 0; y < rows; y++) {
-      forceGrid[x][y] = createForceCell(x, y);
-    }
-  }
-  configureSubstrateFields();
-}
-
 
 
 function renderTimelineSnapshots() {
@@ -3459,16 +3366,14 @@ function goToMilestone(index) {
   isViewingSnapshot = true;
   activeMilestoneIndex = index;
   
-  // Pause clock if we select a historical milestone (so it doesn't decay immediately out of it)
-  // but if they click "Today" we can let it run!
+  // Freeze the simulation timer when viewing a static forensic milestone,
+  // showing a clean green "Run Simulation" button to resume from this state!
+  timeScale = 0;
   const btnToggle = document.getElementById('btn-toggle-time');
-  if (index !== 2 && timeScale !== 1) {
-    timeScale = 1;
-    if (btnToggle) {
-      btnToggle.innerText = "Accelerate x100";
-      btnToggle.style.color = "var(--text-primary)";
-      btnToggle.style.borderColor = "var(--border-color)";
-    }
+  if (btnToggle) {
+    btnToggle.innerText = "Run Simulation";
+    btnToggle.style.color = "var(--accent-green)";
+    btnToggle.style.borderColor = "rgba(46, 204, 113, 0.3)";
   }
   
   const m = milestones[activeArtwork][activeCycle][index];
@@ -3505,6 +3410,28 @@ function goToMilestone(index) {
   notesBody.innerHTML = liveHTML + notesBody.innerHTML;
 }
 
+function startLiveSimulationFromCurrentState() {
+  isViewingSnapshot = false;
+  activeMilestoneIndex = -1; // -1 represents Running Live
+  
+  // Convert the current viewed snapshot grid and simulatedFrames into the new active live feed!
+  liveSimulationGrid = deepCopyGrid(forceGrid);
+  liveSimulatedFrames = simulatedFrames;
+  
+  // Re-render timeline snapshots to update highlighted active class and indicators
+  renderTimelineSnapshots();
+  updateAssetMetrics();
+  updateTimelineHUD();
+  
+  // Append milestone specific analysis note
+  let liveHTML = `<div class='milestone-note' style='margin-top: 10px; padding: 8px; background: rgba(46, 204, 113, 0.05); border: 1px solid rgba(46, 204, 113, 0.2); border-radius: 4px; font-size: 0.68rem; line-height: 1.3;'>
+    <span style='color: var(--accent-green); font-family: var(--font-mono); font-weight: 600; display: block; margin-bottom: 2px;'>[Simulation Resumed from Milestone]</span>
+    <span style='color: var(--text-primary);'>Resumed active real-time environmental stress calculations running forward from the selected milestone state.</span>
+  </div>`;
+  
+  notesBody.innerHTML = liveHTML + notesBody.innerHTML;
+}
+
 function returnToLiveSimulation() {
   if (!isViewingSnapshot) return; // Already on live
   
@@ -3522,6 +3449,20 @@ function returnToLiveSimulation() {
   // Sync the diagnostic UI sliders and integrity indicators
   updateAssetMetrics();
   updateTimelineHUD();
+  
+  // Restore button text to correct state based on timeScale
+  const btnToggle = document.getElementById('btn-toggle-time');
+  if (btnToggle) {
+    if (timeScale > 0) {
+      btnToggle.innerText = "Pause Clock";
+      btnToggle.style.color = "var(--accent-red)";
+      btnToggle.style.borderColor = "rgba(255, 56, 56, 0.3)";
+    } else {
+      btnToggle.innerText = "Run Simulation";
+      btnToggle.style.color = "var(--accent-green)";
+      btnToggle.style.borderColor = "rgba(46, 204, 113, 0.3)";
+    }
+  }
   
   // Append milestone specific analysis note
   let liveHTML = `<div class='milestone-note' style='margin-top: 10px; padding: 8px; background: rgba(46, 204, 113, 0.05); border: 1px solid rgba(46, 204, 113, 0.2); border-radius: 4px; font-size: 0.68rem; line-height: 1.3;'>
@@ -3591,25 +3532,25 @@ function generatePhysicsSnapshots() {
     // Snapshot 1: Micro-fatigue
     for (let i = 0; i < 20; i++) updateGenerativeForces(0.50, 20.0, 0.0, 1.0);
     artworkSnapshots[1] = deepCopyGrid(forceGrid);
-    artworkSnapshots[1].unlocked = false;
+    artworkSnapshots[1].unlocked = true;
     artworkSnapshots[1].isCapturedFromLive = false;
     
     // Snapshot 2: Active Shear
     for (let i = 0; i < 40; i++) updateGenerativeForces(0.50, 20.0, 0.0, 1.0);
     artworkSnapshots[2] = deepCopyGrid(forceGrid);
-    artworkSnapshots[2].unlocked = false;
+    artworkSnapshots[2].unlocked = true;
     artworkSnapshots[2].isCapturedFromLive = false;
     
     // Snapshot 3: Soap Nucleation
     for (let i = 0; i < 60; i++) updateGenerativeForces(0.50, 20.0, 0.0, 1.0);
     artworkSnapshots[3] = deepCopyGrid(forceGrid);
-    artworkSnapshots[3].unlocked = false;
+    artworkSnapshots[3].unlocked = true;
     artworkSnapshots[3].isCapturedFromLive = false;
     
     // Snapshot 4: Total Entropy
     for (let i = 0; i < 150; i++) updateGenerativeForces(0.52, 21.0, 0.0, 1.0);
     artworkSnapshots[4] = deepCopyGrid(forceGrid);
-    artworkSnapshots[4].unlocked = false;
+    artworkSnapshots[4].unlocked = true;
     artworkSnapshots[4].isCapturedFromLive = false;
     
   } else if (activeCycle === 'penthouse') {
@@ -3617,25 +3558,25 @@ function generatePhysicsSnapshots() {
     // Snapshot 1: Photo-decay
     for (let i = 0; i < 15; i++) updateGenerativeForces(0.50, 22.0, 1.2, 95.0);
     artworkSnapshots[1] = deepCopyGrid(forceGrid);
-    artworkSnapshots[1].unlocked = false;
+    artworkSnapshots[1].unlocked = true;
     artworkSnapshots[1].isCapturedFromLive = false;
     
     // Snapshot 2: Solar Craquelure
     for (let i = 0; i < 35; i++) updateGenerativeForces(0.50, 24.0, 1.5, 95.0);
     artworkSnapshots[2] = deepCopyGrid(forceGrid);
-    artworkSnapshots[2].unlocked = false;
+    artworkSnapshots[2].unlocked = true;
     artworkSnapshots[2].isCapturedFromLive = false;
     
     // Snapshot 3: Active Bleaching
     for (let i = 0; i < 50; i++) updateGenerativeForces(0.55, 25.0, 1.8, 95.0);
     artworkSnapshots[3] = deepCopyGrid(forceGrid);
-    artworkSnapshots[3].unlocked = false;
+    artworkSnapshots[3].unlocked = true;
     artworkSnapshots[3].isCapturedFromLive = false;
     
     // Snapshot 4: Total Devaluation
     for (let i = 0; i < 160; i++) updateGenerativeForces(0.60, 28.0, 2.5, 120.0);
     artworkSnapshots[4] = deepCopyGrid(forceGrid);
-    artworkSnapshots[4].unlocked = false;
+    artworkSnapshots[4].unlocked = true;
     artworkSnapshots[4].isCapturedFromLive = false;
     
   } else if (activeCycle === 'museum') {
@@ -3643,25 +3584,25 @@ function generatePhysicsSnapshots() {
     // Snapshot 1: Vibration Fatigue
     for (let i = 0; i < 18; i++) updateGenerativeForces(0.50, 21.0, 0.0, 12.0);
     artworkSnapshots[1] = deepCopyGrid(forceGrid);
-    artworkSnapshots[1].unlocked = false;
+    artworkSnapshots[1].unlocked = true;
     artworkSnapshots[1].isCapturedFromLive = false;
     
     // Snapshot 2: Hairline Networks
     for (let i = 0; i < 40; i++) updateGenerativeForces(0.50, 21.0, 0.0, 12.0);
     artworkSnapshots[2] = deepCopyGrid(forceGrid);
-    artworkSnapshots[2].unlocked = false;
+    artworkSnapshots[2].unlocked = true;
     artworkSnapshots[2].isCapturedFromLive = false;
     
     // Snapshot 3: Delamination
     for (let i = 0; i < 80; i++) updateGenerativeForces(0.50, 21.0, 0.0, 12.0);
     artworkSnapshots[3] = deepCopyGrid(forceGrid);
-    artworkSnapshots[3].unlocked = false;
+    artworkSnapshots[3].unlocked = true;
     artworkSnapshots[3].isCapturedFromLive = false;
     
     // Snapshot 4: Brittle Collapse
     for (let i = 0; i < 180; i++) updateGenerativeForces(0.52, 21.0, 0.0, 15.0);
     artworkSnapshots[4] = deepCopyGrid(forceGrid);
-    artworkSnapshots[4].unlocked = false;
+    artworkSnapshots[4].unlocked = true;
     artworkSnapshots[4].isCapturedFromLive = false;
     
   } else if (activeCycle === 'catastrophe') {
@@ -3669,25 +3610,25 @@ function generatePhysicsSnapshots() {
     // Snapshot 1: Thermal Shock
     for (let i = 0; i < 10; i++) updateGenerativeForces(0.60, 35.0, 1.0, 100.0);
     artworkSnapshots[1] = deepCopyGrid(forceGrid);
-    artworkSnapshots[1].unlocked = false;
+    artworkSnapshots[1].unlocked = true;
     artworkSnapshots[1].isCapturedFromLive = false;
     
     // Snapshot 2: Explosive Craquelure
     for (let i = 0; i < 25; i++) updateGenerativeForces(0.85, 40.0, 2.0, 150.0);
     artworkSnapshots[2] = deepCopyGrid(forceGrid);
-    artworkSnapshots[2].unlocked = false;
+    artworkSnapshots[2].unlocked = true;
     artworkSnapshots[2].isCapturedFromLive = false;
     
     // Snapshot 3: Biological Outbreak
     for (let i = 0; i < 50; i++) updateGenerativeForces(0.95, 42.0, 3.5, 180.0);
     artworkSnapshots[3] = deepCopyGrid(forceGrid);
-    artworkSnapshots[3].unlocked = false;
+    artworkSnapshots[3].unlocked = true;
     artworkSnapshots[3].isCapturedFromLive = false;
     
     // Snapshot 4: Total Collapse
     for (let i = 0; i < 120; i++) updateGenerativeForces(0.98, 42.0, 3.5, 180.0);
     artworkSnapshots[4] = deepCopyGrid(forceGrid);
-    artworkSnapshots[4].unlocked = false;
+    artworkSnapshots[4].unlocked = true;
     artworkSnapshots[4].isCapturedFromLive = false;
   }
   
