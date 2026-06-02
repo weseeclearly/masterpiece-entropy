@@ -275,6 +275,19 @@
           </button>
         </div>
 
+        <!-- Custom Spectral Stain Slider -->
+        <div class="slider-container" style="margin-top: 15px; margin-bottom: 5px; padding: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 6px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 0.65rem; color: var(--text-primary); font-weight: 600; font-family: var(--font-mono); letter-spacing: 0.5px;">SPECTRAL STAIN (FLUOROPHORE)</span>
+            <span id="lbl-spectral-stain" style="font-size: 0.65rem; color: var(--accent-blue); font-family: var(--font-mono); font-weight: 600;">0%</span>
+          </div>
+          <input type="range" id="slider-spectral-stain" min="0" max="100" value="0" class="premium-slider" style="width: 100%; accent-color: var(--accent-blue); cursor: pointer; background: rgba(255, 255, 255, 0.1); height: 4px; border-radius: 2px;" title="Slide to shift from forensic accurate aging (0%) to vivid fluorescent biological specimen staining (100%)">
+          <div style="display: flex; justify-content: space-between; font-size: 0.58rem; color: var(--text-secondary); margin-top: 4px; font-family: var(--font-mono);">
+            <span>Forensic Aging</span>
+            <span>Spectral Heatmap</span>
+          </div>
+        </div>
+
         <div class="science-notes-box">
           <h4 id="notes-title">Basquiat Substrate Analysis</h4>
           <p id="notes-body">

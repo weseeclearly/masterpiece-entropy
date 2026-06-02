@@ -145,6 +145,7 @@ let artworkSnapshots = []; // Holds the 5 deep-copied grid snapshots generated b
 let liveSimulationGrid = null; // Stores the active running simulation grid
 let liveSimulatedFrames = 0;   // Stores the active running simulation frames
 let isViewingSnapshot = false;  // Flag indicating if we are currently viewing a historical snapshot
+let spectralStainVal = 0.0; // 0.0 = forensic aging, 1.0 = bio-spectral heatmap
 
 
 // Force Grid Dimensions (Calculated dynamically to ensure zero sub-pixel aliasing)
@@ -269,6 +270,22 @@ function initUIElements() {
   // Simulation admin controls
   document.getElementById('btn-toggle-time').addEventListener('click', toggleTimeScale);
   document.getElementById('btn-reset').addEventListener('click', resetSimulation);
+  
+  // Spectral Stain visual mode slider
+  const sliderStain = document.getElementById('slider-spectral-stain');
+  const lblStain = document.getElementById('lbl-spectral-stain');
+  if (sliderStain && lblStain) {
+    sliderStain.addEventListener('input', (e) => {
+      let val = parseInt(e.target.value);
+      spectralStainVal = val / 100.0;
+      lblStain.innerText = val + "%";
+      if (val > 50) {
+        lblStain.style.color = "var(--accent-green)";
+      } else {
+        lblStain.style.color = "var(--accent-blue)";
+      }
+    });
+  }
 }
 
 function draw() {
@@ -1486,6 +1503,37 @@ function renderRadarGrid() {
           }
         }
         
+        // Dynamic visual mode blending: shift to glowing, high-contrast, bio-spectral heatmap!
+        if (spectralStainVal > 0.01) {
+          // Increase background visibility to let the glowing digital landscape stand out
+          visibleAlpha = lerp(visibleAlpha, max(0.24, alphaBacking), spectralStainVal);
+          
+          let intensity = (rGhost + gGhost + bGhost) / 3.0;
+          
+          // Highly abstract, gorgeous bio-spectral thermal color ramp (confocal dye style!)
+          let specR = 10, specG = 10, specB = 30;
+          if (intensity < 60) {
+            // Dark regions map to rich deep blues/indigo
+            specR = lerp(10, 80, intensity / 60);
+            specG = lerp(10, 0, intensity / 60);
+            specB = lerp(30, 240, intensity / 60);
+          } else if (intensity < 130) {
+            // Midtones map to vibrant neon green/cyan/magenta spectrum
+            specR = lerp(80, 0, (intensity - 60) / 70);
+            specG = lerp(0, 255, (intensity - 60) / 70);
+            specB = lerp(240, 150, (intensity - 60) / 70);
+          } else {
+            // Highlights map to electric yellow, fiery orange, and laser-pink
+            specR = lerp(0, 255, (intensity - 130) / 125);
+            specG = lerp(255, 120, (intensity - 130) / 125);
+            specB = lerp(150, 0, (intensity - 130) / 125);
+          }
+          
+          rGhost = lerp(rGhost, specR, spectralStainVal);
+          gGhost = lerp(gGhost, specG, spectralStainVal);
+          bGhost = lerp(bGhost, specB, spectralStainVal);
+        }
+        
         r = lerp(r, rGhost, visibleAlpha);
         g = lerp(g, gGhost, visibleAlpha);
         b = lerp(b, bGhost, visibleAlpha);
@@ -1499,9 +1547,12 @@ function renderRadarGrid() {
             let aMoist = cell.moistureSaturation * 0.45;
             let moistTide = 0.8 + 0.2 * Math.sin(frameCount * 0.012 + x * 0.06);
             aMoist *= moistTide;
-            r = lerp(r, colors.moisture[0] * 0.7, aMoist);
-            g = lerp(g, colors.moisture[1] * 0.7, aMoist);
-            b = lerp(b, colors.moisture[2], aMoist);
+            let mR = lerp(colors.moisture[0] * 0.7, 0, spectralStainVal);
+            let mG = lerp(colors.moisture[1] * 0.7, 240, spectralStainVal);
+            let mB = lerp(colors.moisture[2], 255, spectralStainVal);
+            r = lerp(r, mR, aMoist);
+            g = lerp(g, mG, aMoist);
+            b = lerp(b, mB, aMoist);
           }
           
           // Layer 2: Ambient Solar UV Flux (Rolling Indigo Aurora Borealis)
@@ -1520,9 +1571,12 @@ function renderRadarGrid() {
           
           if (fUV > 0.02) {
             let aUV = fUV * 0.75;
-            r = lerp(r, colors.uvFlux[0], aUV);
-            g = lerp(g, colors.uvFlux[1], aUV);
-            b = lerp(b, colors.uvFlux[2], aUV);
+            let uvR = lerp(colors.uvFlux[0], 230, spectralStainVal);
+            let uvG = lerp(colors.uvFlux[1], 0, spectralStainVal);
+            let uvB = lerp(colors.uvFlux[2], 255, spectralStainVal);
+            r = lerp(r, uvR, aUV);
+            g = lerp(g, uvG, aUV);
+            b = lerp(b, uvB, aUV);
           }
           
           // Layer 3: Photolytic Bleaching voids (Breathe/Vaporous Chemical Voids)
@@ -1534,9 +1588,12 @@ function renderRadarGrid() {
             let bleachBreathe = 0.85 + 0.15 * Math.sin(frameCount * 0.03 + y * 0.1);
             aBleach *= bleachBreathe;
             
-            r = lerp(r, colors.bleach[0] * 0.5, aBleach);
-            g = lerp(g, colors.bleach[1] * 0.5, aBleach);
-            b = lerp(b, colors.bleach[2] * 0.65, aBleach);
+            let bR = lerp(colors.bleach[0] * 0.5, 0, spectralStainVal);
+            let bG = lerp(colors.bleach[1] * 0.5, 255, spectralStainVal);
+            let bB = lerp(colors.bleach[2] * 0.65, 127, spectralStainVal);
+            r = lerp(r, bR, aBleach);
+            g = lerp(g, bG, aBleach);
+            b = lerp(b, bB, aBleach);
             
             // If fully cooked, coordinates fade back into a silent, cold carbon-ash void
             if (fullyBleached > 0.94) {
@@ -1555,9 +1612,12 @@ function renderRadarGrid() {
             let soapTwinkle = 0.3 + 0.7 * noise(x * 0.8, y * 0.8, frameCount * 0.06) * activity;
             let aSoap = cell.soapMigration * 0.8 * (0.4 + 0.6 * soapTwinkle);
             
-            r = lerp(r, colors.sapon[0] * 0.6, aSoap);
-            g = lerp(g, colors.sapon[1] * 0.6, aSoap);
-            b = lerp(b, colors.sapon[2] * 0.15, aSoap);
+            let sR = lerp(colors.sapon[0] * 0.6, 255, spectralStainVal);
+            let sG = lerp(colors.sapon[1] * 0.6, 110, spectralStainVal);
+            let sB = lerp(colors.sapon[2] * 0.15, 0, spectralStainVal);
+            r = lerp(r, sR, aSoap);
+            g = lerp(g, sG, aSoap);
+            b = lerp(b, sB, aSoap);
             
             if (fullyCooked > 0.94) {
               r = lerp(r, 35, 0.45); // dull solid crystalline lead soap crust
@@ -1575,9 +1635,12 @@ function renderRadarGrid() {
             // Bioluminescent pulse fades as coordinates fully rot
             let aBio = cell.biologicalCreep * 0.85 * (0.5 + 0.5 * bioPulse * activity);
             
-            r = lerp(r, colors.biological[0] * 0.15, aBio);
-            g = lerp(g, colors.biological[1] * 0.8, aBio);
-            b = lerp(b, colors.biological[2] * 0.6, aBio);
+            let bioR = lerp(colors.biological[0] * 0.15, 0, spectralStainVal);
+            let bioG = lerp(colors.biological[1] * 0.8, 255, spectralStainVal);
+            let bioB = lerp(colors.biological[2] * 0.6, 0, spectralStainVal);
+            r = lerp(r, bioR, aBio);
+            g = lerp(g, bioG, aBio);
+            b = lerp(b, bioB, aBio);
             
             if (fullyCooked > 0.94) {
               r = lerp(r, 2, 0.75); // inert, slimy, green-black rot
@@ -1590,21 +1653,32 @@ function renderRadarGrid() {
           if (cell.fractureDensity > 0.0 || cell.energyFlash > 0.02) {
             let flash = cell.energyFlash;
             if (cell.fractureDensity > 0.0) {
-              r = lerp(12, 255, flash);
-              g = lerp(2, 255, flash);
-              b = lerp(4, 255, flash);
+              let baseR = lerp(12, 255, flash);
+              let baseG = lerp(2, 255, flash);
+              let baseB = lerp(4, 255, flash);
               
               if (flash > 0.05) {
                 let cool = flash;
-                r = lerp(colors.stress[0] * 0.4, 255, cool);
-                g = lerp(colors.stress[1] * 0.1, 255, cool);
-                b = lerp(colors.stress[2] * 0.2, 255, cool);
+                baseR = lerp(colors.stress[0] * 0.4, 255, cool);
+                baseG = lerp(colors.stress[1] * 0.1, 255, cool);
+                baseB = lerp(colors.stress[2] * 0.2, 255, cool);
               }
+              
+              let specR = lerp(baseR, 255, spectralStainVal);
+              let specG = lerp(baseG, 0, spectralStainVal);
+              let specB = lerp(baseB, 180, spectralStainVal);
+              r = specR;
+              g = specG;
+              b = specB;
             } else {
               let aFlash = flash * 0.9;
-              r = lerp(r, colors.crackTip[0], aFlash);
-              g = lerp(g, colors.crackTip[1], aFlash);
-              b = lerp(b, colors.crackTip[2], aFlash);
+              let tR = lerp(r, colors.crackTip[0], aFlash);
+              let tG = lerp(g, colors.crackTip[1], aFlash);
+              let tB = lerp(b, colors.crackTip[2], aFlash);
+              
+              r = lerp(tR, 255, spectralStainVal * aFlash);
+              g = lerp(tG, 0, spectralStainVal * aFlash);
+              b = lerp(tB, 180, spectralStainVal * aFlash);
             }
           }
         } 
