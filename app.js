@@ -677,7 +677,9 @@ let simulatedFrames = 0; // Dynamic timeline frame accumulator
 let artworkImages = {};
 
 function preload() {
-  artworkImages.basquiat = loadImage('basquiat.png', () => {}, () => {});
+  artworkImages.basquiat = loadImage('Jean-Michel-Basquiat-Untitled-1982-in-excess-of-60m-961x1024.jpg', () => {}, () => {
+    artworkImages.basquiat = loadImage('basquiat.png', () => {}, () => {});
+  });
   artworkImages.rothko = loadImage('No._6_(Violet,_Green_and_Red).jpg', () => {}, () => {
     artworkImages.rothko = loadImage('rothko.png', () => {}, () => {});
   });
@@ -689,7 +691,9 @@ function preload() {
   artworkImages.magritte = loadImage("l'empire des lumieres.jpg", () => {}, () => {
     artworkImages.magritte = loadImage('magritte.png', () => {}, () => {});
   });
-  artworkImages.supra = loadImage('Supra—Infra—Intra—Extra—.jpg', () => {}, () => {});
+  artworkImages.supra = loadImage('Supra-Infra-Intra-Extra-.jpg', () => {}, () => {
+    artworkImages.supra = loadImage('Supra—Infra—Intra—Extra—.jpg', () => {}, () => {});
+  });
   artworkImages.thunderDawn = loadImage('the bond between thunder and dawn.jpg', () => {}, () => {});
 }
 
