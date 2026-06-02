@@ -1629,13 +1629,34 @@ function renderRadarGrid() {
           } else if (isHead) {
             rGhost = 245; gGhost = 205; bGhost = 185; // glowing skin tones
           } else if (isBody) {
-            // silk gown white/patterned
-            rGhost = 235; gGhost = 235; bGhost = 240;
-            if ((x + y) % 6 === 0 || (x - y) % 8 === 0) {
-              rGhost = 45; gGhost = 65; bGhost = 55; // green patterns
+            // Flowing silk gown white base
+            rGhost = 240; gGhost = 238; bGhost = 232;
+            
+            // Soft vertical painterly folds using Perlin noise
+            let foldNoise = noise(x * 0.08, y * 0.03);
+            let foldShade = map(foldNoise, 0.3, 0.7, -25, 25);
+            rGhost += foldShade;
+            gGhost += foldShade;
+            bGhost += foldShade;
+            
+            // Gorgeous organic Klimt-style decorative spiral motifs and soft vertical stripe patterns
+            let patternNoise = noise(x * 0.12, y * 0.12);
+            let stripeNoise = noise(x * 0.06);
+            
+            // Soft vertical decorative bands (delicate gray-blue/sage)
+            if (stripeNoise > 0.58 && Math.abs(dx) > 2) {
+              rGhost = lerp(rGhost, 85, 0.55);
+              gGhost = lerp(gGhost, 110, 0.55);
+              bGhost = lerp(bGhost, 100, 0.55); // beautiful sage-blue stripe
             }
-            if ((x * y) % 19 === 0) {
-              rGhost = 205; gGhost = 155; bGhost = 35; // gold highlights
+            
+            // Elegant painterly golden spirals on her gown using smooth threshold noise
+            if (patternNoise > 0.65) {
+              rGhost = 212; gGhost = 175; bGhost = 55; // Klimt gold ornament
+              // Add metallic relief shading
+              if (noise(x * 0.3, y * 0.3) > 0.55) {
+                rGhost = 160; gGhost = 120; bGhost = 30;
+              }
             }
           } else {
             // Red-coral background
@@ -1645,8 +1666,10 @@ function renderRadarGrid() {
               rGhost = 215; gGhost = 215; bGhost = 225; // reflective silver leaf
             } else if (cell.isKlimtGold) {
               rGhost = 220; gGhost = 165; bGhost = 30; // shimmering gold leaf
-              if ((x + y) % 5 === 0) {
-                rGhost = 175; gGhost = 115; bGhost = 10; // dark shading in gold spirals
+              // Organic, hand-crafted gold leaf texture and soft spiral shading
+              let goldTexture = noise(x * 0.2, y * 0.2);
+              if (goldTexture > 0.58) {
+                rGhost = 175; gGhost = 115; bGhost = 10; // warm gold relief shadows
               }
             }
           }
