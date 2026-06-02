@@ -1789,8 +1789,9 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale
         } else if (activeArtwork === 'rothko') {
           if (cell.isRothkoSeam) strain *= 3.2;
         } else if (activeArtwork === 'klimt') {
-          strain *= 1.8;
-          if (cell.isKlimtGold) strain *= 2.6; // metal-gesso boundary shears rapidly
+          strain *= 1.6;
+          // Thick lead white oil impasto layers accumulate higher drying tension than thin background washes
+          if (cell.materialType.includes('Lead White')) strain *= 1.55;
         } else if (activeArtwork === 'pollock') {
           // Pollock's thick liquid industrial alkyd shrinks violently by 4%!
           strain *= 6.8; 
@@ -1820,8 +1821,8 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale
         // or propagate into neighboring cells. This forms beautiful connected veins rather than random dots!
         let canCrack = false;
         
-        if (x < 3 || y < 3 || x > cols - 4 || y > rows - 4 || cell.isRothkoSeam || cell.isKlimtGold || cell.soapMigration > 0.38) {
-          canCrack = true; // Stretcher frames and layered seams act as boundary stress concentrators
+        if (x < 3 || y < 3 || x > cols - 4 || y > rows - 4 || cell.isRothkoSeam || cell.soapMigration > 0.38) {
+          canCrack = true; // Stretcher frames, seams, and lead soap crystallization act as boundary stress concentrators
         } 
         else if (activeArtwork === 'pollock' && cell.isPollockDrip && random(1.0) < min(0.9, 0.04 * speedScale)) {
           canCrack = true; // Poured drip tracks act as localized micro-shrinkage seeds
@@ -2324,13 +2325,13 @@ function renderRadarGrid() {
               rGhost = 140; gGhost = 35; bGhost = 30;
               
               if (cell.isKlimtSilver) {
-                rGhost = 215; gGhost = 215; bGhost = 225; // reflective silver leaf
+                rGhost = 215; gGhost = 215; bGhost = 225; // Zinc White details
               } else if (cell.isKlimtGold) {
-                rGhost = 220; gGhost = 165; bGhost = 30; // shimmering gold leaf
-                // Organic, hand-crafted gold leaf texture and soft spiral shading
+                rGhost = 220; gGhost = 165; bGhost = 30; // Chrome Yellow brushstrokes
+                // Organic, hand-crafted Chrome Yellow texture and soft spiral shading
                 let goldTexture = noise(x * 0.2, y * 0.2);
                 if (goldTexture > 0.58) {
-                  rGhost = 175; gGhost = 115; bGhost = 10; // warm gold relief shadows
+                  rGhost = 175; gGhost = 115; bGhost = 10; // warm Chrome Yellow relief shadows
                 }
               }
             }
