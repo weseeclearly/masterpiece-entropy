@@ -2516,17 +2516,22 @@ function toggleTimeScale() {
   }
 }
 
-function getCurrentSimulatedYear() {
+function getCurrentSimulatedYear(framesVal) {
   let elapsedYears = 0;
+  let f = (framesVal !== undefined) ? framesVal : simulatedFrames;
   
   if (activeCycle === 'freeport') {
-    elapsedYears = Math.floor(simulatedFrames / 12);
+    f = Math.floor(f);
+    elapsedYears = Math.floor(f / 12);
   } else if (activeCycle === 'penthouse') {
-    elapsedYears = Math.floor(simulatedFrames / 365);
+    f = Math.floor(f);
+    elapsedYears = Math.floor(f / 365);
   } else if (activeCycle === 'museum') {
-    elapsedYears = Math.floor(simulatedFrames / 52);
+    f = Math.floor(f);
+    elapsedYears = Math.floor(f / 52);
   } else if (activeCycle === 'catastrophe') {
-    let totalMinutes = Math.floor(simulatedFrames * 10);
+    f = Math.floor(f);
+    let totalMinutes = Math.floor(f * 10);
     let totalHours = Math.floor(totalMinutes / 60);
     let days = Math.floor(totalHours / 24);
     elapsedYears = Math.floor(days / 365);
@@ -2535,16 +2540,17 @@ function getCurrentSimulatedYear() {
   return substrates[activeArtwork].paintedYear + elapsedYears;
 }
 
-function getCurrentSimulatedTime() {
+function getCurrentSimulatedTime(framesVal) {
   let elapsed = 0;
+  let f = (framesVal !== undefined) ? framesVal : simulatedFrames;
   if (activeCycle === 'freeport') {
-    elapsed = Math.floor(simulatedFrames / 12);
+    elapsed = Math.floor(f / 12);
   } else if (activeCycle === 'penthouse') {
-    elapsed = Math.floor(simulatedFrames / 365);
+    elapsed = Math.floor(f / 365);
   } else if (activeCycle === 'museum') {
-    elapsed = Math.floor(simulatedFrames / 52);
+    elapsed = Math.floor(f / 52);
   } else if (activeCycle === 'catastrophe') {
-    let totalMinutes = Math.floor(simulatedFrames * 10);
+    let totalMinutes = Math.floor(f * 10);
     elapsed = Math.floor(totalMinutes / 60); // hours
   }
   return elapsed;
@@ -2648,26 +2654,28 @@ function renderTimelineSnapshots() {
     liveCard.classList.add('active');
   }
   
-  let currentYear = getCurrentSimulatedYear();
+  let activeFrames = isViewingSnapshot ? liveSimulatedFrames : simulatedFrames;
+  
+  let currentYear = getCurrentSimulatedYear(activeFrames);
   let startYear = substrates[activeArtwork].paintedYear;
   let elapsedY = currentYear - startYear;
   
   let timeTitle = currentYear;
   let descText = "";
   if (activeCycle === 'freeport') {
-    let totalMonths = Math.floor(simulatedFrames);
+    let totalMonths = Math.floor(activeFrames);
     let years = Math.floor(totalMonths / 12);
     descText = `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
   } else if (activeCycle === 'penthouse') {
-    let totalDays = Math.floor(simulatedFrames);
+    let totalDays = Math.floor(activeFrames);
     let years = Math.floor(totalDays / 365);
     descText = `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
   } else if (activeCycle === 'museum') {
-    let totalWeeks = Math.floor(simulatedFrames);
+    let totalWeeks = Math.floor(activeFrames);
     let years = Math.floor(totalWeeks / 52);
     descText = `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
   } else if (activeCycle === 'catastrophe') {
-    let totalMinutes = Math.floor(simulatedFrames * 10);
+    let totalMinutes = Math.floor(activeFrames * 10);
     let totalHours = Math.floor(totalMinutes / 60);
     let days = Math.floor(totalHours / 24);
     let hours = totalHours % 24;
