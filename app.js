@@ -867,13 +867,16 @@ function updateLegendColors() {
 function toggleAutoConservation() {
   autoConservationActive = !autoConservationActive;
   if (autoConservationActive) {
-    // Force immediate trigger upon activation
+    // Run an immediate conservation cycle so it kicks in instantly
+    runAutoConservation();
+    
+    // Sync the timers so the next periodic run happens 25 years (or 2 hours) from now
     let years = 0;
     if (activeCycle === 'freeport') years = Math.floor(simulatedFrames / 12);
     else if (activeCycle === 'museum') years = Math.floor(simulatedFrames / 52);
     else if (activeCycle === 'penthouse') years = Math.floor(simulatedFrames / 365);
-    lastConservationYear = years - 25;
-    lastConservationHour = Math.floor(simulatedFrames / 6) - 2;
+    lastConservationYear = years;
+    lastConservationHour = Math.floor(simulatedFrames / 6);
   }
   const btn = document.getElementById('btn-auto-conserve');
   if (btn) {
@@ -4100,13 +4103,18 @@ function updateCanvasScaleClass() {
 }
 
 function syncConservationTimers() {
+  // If auto-conservation is active, offset the timers so that conservation triggers
+  // on the very next simulation frame instead of making the user wait 25 years (or 2 hours).
+  let sub = autoConservationActive ? 25 : 0;
+  let subHour = autoConservationActive ? 2 : 0;
+  
   if (activeCycle === 'catastrophe') {
-    lastConservationHour = Math.floor(simulatedFrames / 6);
+    lastConservationHour = Math.floor(simulatedFrames / 6) - subHour;
   } else {
     let years = 0;
     if (activeCycle === 'freeport') years = Math.floor(simulatedFrames / 12);
     else if (activeCycle === 'museum') years = Math.floor(simulatedFrames / 52);
     else if (activeCycle === 'penthouse') years = Math.floor(simulatedFrames / 365);
-    lastConservationYear = years;
+    lastConservationYear = years - sub;
   }
 }
