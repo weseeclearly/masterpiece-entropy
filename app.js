@@ -1888,7 +1888,7 @@ function renderRadarGrid() {
   
   // Check if opal diffuser is active once per frame
   let isOpalActive = false;
-  let dOpal = document.getElementById('opal-glass-diffuser');
+  let dOpal = document.getElementById('bloom-canvas');
   if (dOpal && dOpal.classList.contains('active')) {
     isOpalActive = true;
   }
@@ -2640,8 +2640,7 @@ function renderRadarGrid() {
       
       // Directly output sharp, un-aliased circular LED diode points (creates an intentional hardware LED matrix grid)
       if (isOpalActive) {
-        // Sophisticated dual-layered per-diode bloom: keeps the grid sharp and intentional while generating an atmospheric halo
-        // Enhance the bloom radius and alpha specifically on the composition borders for that vibrating Rothko edge-shift!
+        // Sophisticated dual-layered per-diode bloom using fast native Canvas 2D calls
         let localDecay = cell.moistureSaturation * 0.8 + 
                          cell.photolyticBleach * 1.5 + 
                          cell.soapMigration * 1.5 + 
@@ -2652,7 +2651,6 @@ function renderRadarGrid() {
         let localEdgeGlow = map(cell.edgeGradient, 8, 85, 0.0, 1.0);
         localEdgeGlow = constrain(localEdgeGlow * (spectralStainVal * decayGate), 0.0, 1.0);
         
-        // Integrate high-frequency Perlin noise in active state-change and spatial boundary edge areas to create shimmering halos
         let highFreqNoise = noise(x * 0.35, y * 0.35, frameCount * 0.22);
         let flickerVal = max((cell.eatingFlicker || 0.0) * 0.5, cell.decayEdgeGlow || 0.0) * highFreqNoise;
         
@@ -2660,17 +2658,31 @@ function renderRadarGrid() {
         let haloAlpha = 65 + localEdgeGlow * 105 + flickerVal * 190;
         haloAlpha = constrain(haloAlpha, 0, 255);
         
+        let cr = Math.round(constrain(r, 0, 255));
+        let cg = Math.round(constrain(g, 0, 255));
+        let cb = Math.round(constrain(b, 0, 255));
+        
         // 1. Soft outer halo (bloom corona)
-        fill(constrain(r, 0, 255), constrain(g, 0, 255), constrain(b, 0, 255), haloAlpha);
-        ellipse(x * cellPitch + cellPitch / 2, y * cellPitch + cellPitch / 2, haloSize, haloSize);
+        drawingContext.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${haloAlpha / 255})`;
+        drawingContext.beginPath();
+        drawingContext.arc(x * cellPitch + cellPitch / 2, y * cellPitch + cellPitch / 2, haloSize / 2, 0, 2 * Math.PI);
+        drawingContext.fill();
         
         // 2. Crisp inner core
-        fill(constrain(r, 0, 255), constrain(g, 0, 255), constrain(b, 0, 255), 255);
-        ellipse(x * cellPitch + cellPitch / 2, y * cellPitch + cellPitch / 2, cellPitch * 0.72, cellPitch * 0.72);
+        drawingContext.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
+        drawingContext.beginPath();
+        drawingContext.arc(x * cellPitch + cellPitch / 2, y * cellPitch + cellPitch / 2, cellPitch * 0.36, 0, 2 * Math.PI);
+        drawingContext.fill();
       } else {
-        // Standard sharp emitter with zero bloom
-        fill(constrain(r, 0, 255), constrain(g, 0, 255), constrain(b, 0, 255));
-        ellipse(x * cellPitch + cellPitch / 2, y * cellPitch + cellPitch / 2, cellPitch * 0.72, cellPitch * 0.72);
+        // Standard sharp emitter using ultra-fast native circular arc paths for maximum GPU throughput
+        let cr = Math.round(constrain(r, 0, 255));
+        let cg = Math.round(constrain(g, 0, 255));
+        let cb = Math.round(constrain(b, 0, 255));
+        
+        drawingContext.fillStyle = `rgb(${cr}, ${cg}, ${cb})`;
+        drawingContext.beginPath();
+        drawingContext.arc(x * cellPitch + cellPitch / 2, y * cellPitch + cellPitch / 2, cellPitch * 0.36, 0, 2 * Math.PI);
+        drawingContext.fill();
       }
     }
   }
