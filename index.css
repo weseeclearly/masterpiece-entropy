@@ -483,6 +483,11 @@ main {
 .art-card.card-klimt.active::after { background: var(--accent-gold); }
 .art-card.card-pollock.active::after { background: var(--accent-red); }
 .art-card.card-magritte.active::after { background: var(--accent-blue); }
+.art-card.card-supra.active::after { background: var(--accent-purple); }
+.art-card.card-thunderDawn.active::after { background: var(--accent-gold); }
+.art-card.card-klimt.active::after { background: var(--accent-gold); }
+.art-card.card-pollock.active::after { background: var(--accent-red); }
+.art-card.card-magritte.active::after { background: var(--accent-blue); }
 
 .card-header {
   display: flex;
@@ -715,6 +720,176 @@ input[type=range]::-webkit-slider-thumb:hover {
     border-left: none;
   }
 }
+
+/* Forensic Timeline Gallery CSS */
+.forensic-timeline-container {
+  width: 100%;
+  max-width: 850px;
+  margin-bottom: 1.5rem;
+  background: rgba(16, 16, 21, 0.4);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  z-index: 5;
+  backdrop-filter: blur(10px);
+}
+
+.forensic-timeline-title {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  padding-bottom: 4px;
+}
+
+.forensic-timeline-scroll {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.timeline-card {
+  flex: 0 0 150px;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.timeline-card:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-focus);
+  transform: translateY(-1px);
+}
+
+.timeline-card.active {
+  background: rgba(212, 175, 55, 0.08);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.15);
+}
+
+.timeline-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.timeline-card-year {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-gold);
+}
+
+.timeline-card-status {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+}
+
+.timeline-card.active .timeline-card-status {
+  background: rgba(212, 175, 55, 0.2);
+  color: var(--text-primary);
+}
+
+.timeline-card-desc {
+  font-size: 0.62rem;
+  color: var(--text-secondary);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: var(--transition-smooth);
+}
+
+.timeline-card.active .timeline-card-desc,
+.timeline-card:hover .timeline-card-desc {
+  -webkit-line-clamp: unset !important;
+  display: block !important;
+  overflow: visible !important;
+}
+
+.timeline-card.live-card {
+  border-color: rgba(46, 204, 113, 0.2);
+  background: rgba(46, 204, 113, 0.02);
+}
+
+.timeline-card.live-card:hover {
+  border-color: rgba(46, 204, 113, 0.5);
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.15);
+}
+
+.timeline-card.live-card.active {
+  border-color: var(--accent-green) !important;
+  background: rgba(46, 204, 113, 0.08) !important;
+  box-shadow: 0 0 12px rgba(46, 204, 113, 0.25) !important;
+}
+
+@keyframes pulse-live {
+  0% { opacity: 0.5; }
+  50% { opacity: 1.0; }
+  100% { opacity: 0.5; }
+}
+
+/* Premium Custom Select Dropdown */
+.premium-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 30px !important;
+}
+
+.premium-select:hover,
+.premium-select:focus {
+  border-color: var(--accent-blue) !important;
+  box-shadow: 0 0 8px rgba(30, 144, 255, 0.25);
+}
+
+.premium-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Premium Hardware-Accelerated TouchDesigner Additive Bloom Canvas overlay */
+#bloom-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: 4px;
+  z-index: 10;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+  mix-blend-mode: screen; /* Additive blending */
+  opacity: 0;
+  filter: blur(0px) brightness(1.0);
+  background: transparent;
+}
+
+#bloom-canvas.active {
+  opacity: 0.95;
+  /* Authentic TouchDesigner Bloom physics: dual-pass blurring with high-contrast brightness & saturate wash */
+  filter: blur(12px) brightness(1.8) saturate(1.7);
+}
+
 
 /* Forensic Timeline Gallery CSS */
 .forensic-timeline-container {
