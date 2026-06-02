@@ -288,6 +288,37 @@
           </div>
         </div>
 
+        <!-- Dynamic Entropic Force Colormap Legend -->
+        <div class="slider-container" style="margin-top: 10px; margin-bottom: 12px; padding: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 6px;">
+          <div style="font-size: 0.65rem; color: var(--text-primary); font-weight: 600; font-family: var(--font-mono); letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 4px;">ENTROPIC COLORMAP LEGEND</div>
+          <div id="colormap-legend" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-family: var(--font-mono); font-size: 0.6rem;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="legend-stress" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(255, 56, 56); box-shadow: 0 0 6px rgb(255, 56, 56); transition: var(--transition-smooth);"></span>
+              <span style="color: var(--text-secondary);">Stress / Cracks</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="legend-moisture" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(30, 144, 255); box-shadow: 0 0 6px rgb(30, 144, 255); transition: var(--transition-smooth);"></span>
+              <span style="color: var(--text-secondary);">Moisture Tide</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="legend-bleach" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(240, 240, 240); box-shadow: 0 0 6px rgb(240, 240, 240); transition: var(--transition-smooth);"></span>
+              <span style="color: var(--text-secondary);">UV Bleaching</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="legend-sapon" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(212, 175, 55); box-shadow: 0 0 6px rgb(212, 175, 55); transition: var(--transition-smooth);"></span>
+              <span style="color: var(--text-secondary);">Lead Soaps</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="legend-biological" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(46, 204, 113); box-shadow: 0 0 6px rgb(46, 204, 113); transition: var(--transition-smooth);"></span>
+              <span style="color: var(--text-secondary);">Specimen Rot</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="legend-synthetic" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(0, 255, 255); box-shadow: 0 0 6px rgb(0, 255, 255); transition: var(--transition-smooth);"></span>
+              <span style="color: var(--text-secondary);">Synthetic Resin</span>
+            </div>
+          </div>
+        </div>
+
         <div class="science-notes-box">
           <h4 id="notes-title">Basquiat Substrate Analysis</h4>
           <p id="notes-body">

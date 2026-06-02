@@ -284,7 +284,55 @@ function initUIElements() {
       } else {
         lblStain.style.color = "var(--accent-blue)";
       }
+      updateLegendColors();
     });
+  }
+  
+  // Initialize colormap legend dots to forensic defaults
+  updateLegendColors();
+}
+
+function updateLegendColors() {
+  const dStress = document.getElementById('legend-stress');
+  const dMoisture = document.getElementById('legend-moisture');
+  const dBleach = document.getElementById('legend-bleach');
+  const dSapon = document.getElementById('legend-sapon');
+  const dBio = document.getElementById('legend-biological');
+  
+  if (dStress) {
+    let r = Math.round(lerp(255, 255, spectralStainVal));
+    let g = Math.round(lerp(56, 0, spectralStainVal));
+    let b = Math.round(lerp(56, 127, spectralStainVal));
+    dStress.style.background = `rgb(${r}, ${g}, ${b})`;
+    dStress.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
+  }
+  if (dMoisture) {
+    let r = Math.round(lerp(30, 0, spectralStainVal));
+    let g = Math.round(lerp(144, 240, spectralStainVal));
+    let b = Math.round(lerp(255, 255, spectralStainVal));
+    dMoisture.style.background = `rgb(${r}, ${g}, ${b})`;
+    dMoisture.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
+  }
+  if (dBleach) {
+    let r = Math.round(lerp(240, 0, spectralStainVal));
+    let g = Math.round(lerp(240, 255, spectralStainVal));
+    let b = Math.round(lerp(240, 127, spectralStainVal));
+    dBleach.style.background = `rgb(${r}, ${g}, ${b})`;
+    dBleach.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
+  }
+  if (dSapon) {
+    let r = Math.round(lerp(212, 255, spectralStainVal));
+    let g = Math.round(lerp(175, 110, spectralStainVal));
+    let b = Math.round(lerp(55, 0, spectralStainVal));
+    dSapon.style.background = `rgb(${r}, ${g}, ${b})`;
+    dSapon.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
+  }
+  if (dBio) {
+    let r = Math.round(lerp(46, 0, spectralStainVal));
+    let g = Math.round(lerp(204, 255, spectralStainVal));
+    let b = Math.round(lerp(113, 0, spectralStainVal));
+    dBio.style.background = `rgb(${r}, ${g}, ${b})`;
+    dBio.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
 }
 
