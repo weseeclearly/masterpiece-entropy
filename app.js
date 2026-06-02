@@ -7,7 +7,10 @@ let activeCycle = 'freeport'; // 'freeport' | 'penthouse' | 'museum' | 'catastro
 let renderMode = 'visible'; // Visible mode always active in Unified Vitrine
 let timeScale = 100; // 1 = normal, 100 = accelerated
 let currentRunSpeed = 100; // Decouples play/pause from speed scale
-let bloomIntensity = 0.95; // Controls the strength of the additive bloom layer
+let bloomIntensity = 0.30; // Controls the strength of the additive bloom layer
+let autoConservationActive = false; // Controls the autonomous conservation field loop
+let lastConservationYear = 0;
+let lastConservationHour = 0;
 
 // Diagnostic UI Elements
 let barMechanical, barChemical, barBiological;
@@ -402,7 +405,8 @@ const themeColors = {
     biological: [115, 30, 255], // Royal Purple (Abstracted)
     stress: [230, 255, 240],    // Fluorophore White (Abstracted)
     yellowing: [115, 30, 255],  // Royal Purple (Abstracted)
-    grime: [0, 255, 127]        // Acid Lime (Abstracted)
+    grime: [0, 255, 127],       // Acid Lime (Abstracted)
+    conserve: [0, 255, 200]     // Neon Cyan (Abstracted)
   },
   naturalism: {
     ramp: [
@@ -422,7 +426,8 @@ const themeColors = {
     biological: [235, 175, 55], // Golden Sunlight (Abstracted)
     stress: [160, 82, 45],      // Burnt Sienna (Abstracted)
     yellowing: [44, 95, 112],   // Sea-Pine Blue (Abstracted)
-    grime: [235, 175, 55]       // Golden Sunlight (Abstracted)
+    grime: [235, 175, 55],      // Golden Sunlight (Abstracted)
+    conserve: [44, 95, 112]     // Sea-Pine Blue (Abstracted)
   },
   rothkoTension: {
     ramp: [
@@ -442,7 +447,8 @@ const themeColors = {
     biological: [240, 90, 20],  // Warm field (Abstracted)
     stress: [245, 230, 180],    // Pale sand (Abstracted)
     yellowing: [20, 110, 240],  // Cool Field / Cobalt (Abstracted)
-    grime: [230, 20, 80]        // Tension Break / Crimson (Abstracted)
+    grime: [230, 20, 80],       // Tension Break / Crimson (Abstracted)
+    conserve: [20, 110, 240]    // Cobalt Blue (Abstracted)
   },
   morandiCluster: {
     ramp: [
@@ -462,7 +468,8 @@ const themeColors = {
     biological: [38, 38, 38],   // Shadow (Abstracted)
     stress: [104, 108, 104],    // Sage dust 2 (Abstracted)
     yellowing: [115, 108, 118], // Lavender Echo (Abstracted)
-    grime: [166, 115, 102]      // Cinnabar Shift (Abstracted)
+    grime: [166, 115, 102],     // Cinnabar Shift (Abstracted)
+    conserve: [115, 108, 118]   // Lavender Echo (Abstracted)
   },
   thangkaFive: {
     ramp: [
@@ -482,7 +489,8 @@ const themeColors = {
     biological: [245, 242, 235], // Chalk white (Abstracted)
     stress: [255, 205, 48],     // Pure gold (Abstracted)
     yellowing: [18, 48, 138],   // Lapis Blue (Abstracted)
-    grime: [38, 64, 115]        // Insulating Bead (Abstracted)
+    grime: [38, 64, 115],       // Insulating Bead (Abstracted)
+    conserve: [18, 48, 138]     // Lapis Blue (Abstracted)
   },
   sacredVestment: {
     ramp: [
@@ -502,7 +510,8 @@ const themeColors = {
     biological: [242, 228, 115], // Gold Refraction (Abstracted)
     stress: [253, 250, 240],    // Angelic Halo White (Abstracted)
     yellowing: [77, 25, 94],    // Imperial Purple (Abstracted)
-    grime: [184, 194, 202]      // Silver Thread (Abstracted)
+    grime: [184, 194, 202],     // Silver Thread (Abstracted)
+    conserve: [184, 194, 202]   // Silver Thread (Abstracted)
   }
 };
 
@@ -572,7 +581,13 @@ function setup() {
   canvas = createCanvas(cols * cellPitch, rows * cellPitch);
   canvas.parent('canvas-container');
   canvas.id('simulation-canvas');
+  if (container && container.style && typeof container.style.setProperty === 'function') {
+    container.style.setProperty('--canvas-aspect', (cols / rows).toString());
+  }
   syncBloomCanvasSize();
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('resize', updateCanvasScaleClass);
+  }
   
   // Enforce absolute crisp pixels and disable high-DPI scaling blur
   pixelDensity(1);
@@ -751,7 +766,14 @@ function initUIElements() {
     });
     
     // Initial sync on startup
+    lblBloom.innerText = Math.round(bloomIntensity * 100) + "%";
     applyBloomState(overlayOpal.classList.contains('active'));
+  }
+  
+  // Auto-Conservation click listener registration
+  const btnAutoConserve = document.getElementById('btn-auto-conserve');
+  if (btnAutoConserve) {
+    btnAutoConserve.addEventListener('click', toggleAutoConservation);
   }
   
   // Initialize colormap legend dots to forensic defaults
@@ -764,6 +786,7 @@ function updateLegendColors() {
   const dBleach = document.getElementById('legend-bleach');
   const dSapon = document.getElementById('legend-sapon');
   const dBio = document.getElementById('legend-biological');
+  const dSynthetic = document.getElementById('legend-synthetic');
   const dYellowing = document.getElementById('legend-yellowing');
   const dGrime = document.getElementById('legend-grime');
   
@@ -777,46 +800,170 @@ function updateLegendColors() {
     dStress.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dMoisture) {
-    let r = Math.round(lerp(colors.moisture[0], currentColors.moisture[0], spectralStainVal));
-    let g = Math.round(lerp(colors.moisture[1], currentColors.moisture[1], spectralStainVal));
-    let b = Math.round(lerp(colors.moisture[2], currentColors.moisture[2], spectralStainVal));
+    let r = Math.round(lerp(colors.moisture[0] * 0.4, currentColors.moisture[0], spectralStainVal));
+    let g = Math.round(lerp(colors.moisture[1] * 0.4, currentColors.moisture[1], spectralStainVal));
+    let b = Math.round(lerp(colors.moisture[2] * 0.95, currentColors.moisture[2], spectralStainVal));
     dMoisture.style.background = `rgb(${r}, ${g}, ${b})`;
     dMoisture.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dBleach) {
-    let r = Math.round(lerp(colors.bleach[0], currentColors.bleach[0], spectralStainVal));
-    let g = Math.round(lerp(colors.bleach[1], currentColors.bleach[1], spectralStainVal));
-    let b = Math.round(lerp(colors.bleach[2], currentColors.bleach[2], spectralStainVal));
+    let r = Math.round(lerp(colors.bleach[0] * 0.5, currentColors.bleach[0], spectralStainVal));
+    let g = Math.round(lerp(colors.bleach[1] * 0.5, currentColors.bleach[1], spectralStainVal));
+    let b = Math.round(lerp(colors.bleach[2] * 0.65, currentColors.bleach[2], spectralStainVal));
     dBleach.style.background = `rgb(${r}, ${g}, ${b})`;
     dBleach.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dSapon) {
-    let r = Math.round(lerp(colors.sapon[0], currentColors.sapon[0], spectralStainVal));
-    let g = Math.round(lerp(colors.sapon[1], currentColors.sapon[1], spectralStainVal));
-    let b = Math.round(lerp(colors.sapon[2], currentColors.sapon[2], spectralStainVal));
+    let r = Math.round(lerp(colors.sapon[0] * 0.6, currentColors.sapon[0], spectralStainVal));
+    let g = Math.round(lerp(colors.sapon[1] * 0.6, currentColors.sapon[1], spectralStainVal));
+    let b = Math.round(lerp(colors.sapon[2] * 0.15, currentColors.sapon[2], spectralStainVal));
     dSapon.style.background = `rgb(${r}, ${g}, ${b})`;
     dSapon.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dBio) {
-    let r = Math.round(lerp(colors.biological[0], currentColors.biological[0], spectralStainVal));
-    let g = Math.round(lerp(colors.biological[1], currentColors.biological[1], spectralStainVal));
-    let b = Math.round(lerp(colors.biological[2], currentColors.biological[2], spectralStainVal));
+    let r = Math.round(lerp(colors.biological[0] * 0.15, currentColors.biological[0], spectralStainVal));
+    let g = Math.round(lerp(colors.biological[1] * 0.8, currentColors.biological[1], spectralStainVal));
+    let b = Math.round(lerp(colors.biological[2] * 0.5, currentColors.biological[2], spectralStainVal));
     dBio.style.background = `rgb(${r}, ${g}, ${b})`;
     dBio.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
+  if (dSynthetic) {
+    let r = Math.round(lerp(colors.syntheticCyan[0], (currentColors.conserve || colors.syntheticCyan)[0], spectralStainVal));
+    let g = Math.round(lerp(colors.syntheticCyan[1], (currentColors.conserve || colors.syntheticCyan)[1], spectralStainVal));
+    let b = Math.round(lerp(colors.syntheticCyan[2], (currentColors.conserve || colors.syntheticCyan)[2], spectralStainVal));
+    dSynthetic.style.background = `rgb(${r}, ${g}, ${b})`;
+    dSynthetic.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
+  }
   if (dYellowing) {
-    let r = Math.round(lerp(colors.yellowing[0], currentColors.yellowing[0], spectralStainVal));
-    let g = Math.round(lerp(colors.yellowing[1], currentColors.yellowing[1], spectralStainVal));
-    let b = Math.round(lerp(colors.yellowing[2], currentColors.yellowing[2], spectralStainVal));
+    let r = Math.round(lerp(colors.yellowing[0] * 0.6, currentColors.yellowing[0], spectralStainVal));
+    let g = Math.round(lerp(colors.yellowing[1] * 0.6, currentColors.yellowing[1], spectralStainVal));
+    let b = Math.round(lerp(colors.yellowing[2] * 0.15, currentColors.yellowing[2], spectralStainVal));
     dYellowing.style.background = `rgb(${r}, ${g}, ${b})`;
     dYellowing.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dGrime) {
-    let r = Math.round(lerp(colors.grime[0], currentColors.grime[0], spectralStainVal));
-    let g = Math.round(lerp(colors.grime[1], currentColors.grime[1], spectralStainVal));
-    let b = Math.round(lerp(colors.grime[2], currentColors.grime[2], spectralStainVal));
+    let r = Math.round(lerp(colors.grime[0] * 0.5, currentColors.grime[0], spectralStainVal));
+    let g = Math.round(lerp(colors.grime[1] * 0.5, currentColors.grime[1], spectralStainVal));
+    let b = Math.round(lerp(colors.grime[2] * 0.5, currentColors.grime[2], spectralStainVal));
     dGrime.style.background = `rgb(${r}, ${g}, ${b})`;
     dGrime.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
+  }
+}
+
+function toggleAutoConservation() {
+  autoConservationActive = !autoConservationActive;
+  if (autoConservationActive) {
+    // Force immediate trigger upon activation
+    let years = 0;
+    if (activeCycle === 'freeport') years = Math.floor(simulatedFrames / 12);
+    else if (activeCycle === 'museum') years = Math.floor(simulatedFrames / 52);
+    else if (activeCycle === 'penthouse') years = Math.floor(simulatedFrames / 365);
+    lastConservationYear = years - 25;
+    lastConservationHour = Math.floor(simulatedFrames / 6) - 2;
+  }
+  const btn = document.getElementById('btn-auto-conserve');
+  if (btn) {
+    if (autoConservationActive) {
+      btn.innerText = "🛡️ AUTO-CONSERVATION: ACTIVE";
+      btn.style.background = "rgba(30, 144, 255, 0.15)";
+      btn.style.color = "var(--accent-blue)";
+      btn.style.borderColor = "rgba(30, 144, 255, 0.4)";
+      btn.style.boxShadow = "0 0 8px rgba(30, 144, 255, 0.25)";
+    } else {
+      btn.innerText = "🛡️ AUTO-CONSERVATION: INACTIVE";
+      btn.style.background = "rgba(30, 144, 255, 0.05)";
+      btn.style.color = "var(--accent-blue)";
+      btn.style.borderColor = "rgba(30, 144, 255, 0.2)";
+      btn.style.boxShadow = "none";
+    }
+  }
+}
+
+function shouldTriggerConservation() {
+  if (activeCycle === 'catastrophe') {
+    let hours = Math.floor(simulatedFrames / 6);
+    if (hours >= lastConservationHour + 2) {
+      lastConservationHour = hours;
+      return true;
+    }
+  } else {
+    let years = 0;
+    if (activeCycle === 'freeport') years = Math.floor(simulatedFrames / 12);
+    else if (activeCycle === 'museum') years = Math.floor(simulatedFrames / 52);
+    else if (activeCycle === 'penthouse') years = Math.floor(simulatedFrames / 365);
+    
+    if (years >= lastConservationYear + 25) {
+      lastConservationYear = years;
+      return true;
+    }
+  }
+  return false;
+}
+
+function runAutoConservation() {
+  let currentYear = Math.max(0, getCurrentSimulatedYear(simulatedFrames));
+  let fatigueScale = 1.0;
+  if (currentYear > 1000) {
+    // Conservation efficiency gradually drops to 10% between 1000 and 2000 years
+    fatigueScale = Math.max(0.1, 1.0 - (currentYear - 1000) / 1000.0);
+  }
+  
+  let candidates = [];
+  
+  for (let x = 0; x < cols; x++) {
+    for (let y = 0; y < rows; y++) {
+      let cell = forceGrid[x][y];
+      let priority = 0;
+      
+      if (cell.fractureDensity > 0.0) {
+        priority += 10.0 + cell.mechanicalStress * 2.0;
+      }
+      if (cell.biologicalCreep > 0.2) {
+        priority += 5.0 + cell.biologicalCreep * 4.0;
+      }
+      if (cell.surfaceGrime > 0.3) {
+        priority += 2.0 + cell.surfaceGrime * 3.0;
+      }
+      if (cell.varnishYellowing > 0.3) {
+        priority += 1.0 + cell.varnishYellowing * 2.0;
+      }
+      
+      if (priority > 0) {
+        priority += random(-0.2, 0.2); // break spatial loop-order ties naturalistically
+        candidates.push({ x, y, priority });
+      }
+    }
+  }
+  
+  if (candidates.length > 0) {
+    candidates.sort((a, b) => b.priority - a.priority);
+    
+    // Major conservation campaign: repair a large batch of the most critically decayed cells
+    // (typically 600 - 1000 cells depending on simulation speed and fatigue scale)
+    let baseBatchSize = 600;
+    let count = Math.min(candidates.length, Math.ceil((baseBatchSize + timeScale * 8) * fatigueScale));
+    for (let i = 0; i < count; i++) {
+      let c = candidates[i];
+      let cell = forceGrid[c.x][c.y];
+      
+      if (cell.fractureDensity > 0.0) {
+        cell.isRestored = true;
+        cell.fractureDensity = 0.0;
+        cell.biologicalCreep = 0.0;
+        cell.photolyticBleach = 0.0;
+        cell.soapMigration = 0.0;
+        cell.mechanicalStress = 0.0;
+        cell.moistureSaturation = 0.0;
+        cell.energyFlash = 0.85; // cybernetic repair spark
+      } else if (cell.biologicalCreep > 0.2) {
+        cell.biologicalCreep = Math.max(0.0, cell.biologicalCreep - 0.25);
+        cell.energyFlash = 0.65; // biological consolidation flash
+      } else {
+        cell.surfaceGrime = Math.max(0.0, cell.surfaceGrime - 0.20);
+        cell.varnishYellowing = Math.max(0.0, cell.varnishYellowing - 0.20);
+        cell.energyFlash = 0.50; // surface cleaning spark
+      }
+    }
   }
 }
 
@@ -856,6 +1003,9 @@ function draw() {
   } else if (!isViewingSnapshot) {
     if (timeScale > 0) {
       updateGenerativeForces(rh, temp, uv, dust, undefined, timeScale);
+      if (autoConservationActive && shouldTriggerConservation()) {
+        runAutoConservation();
+      }
     }
     // Deep copy and preserve current live simulation state
     liveSimulationGrid = deepCopyGrid(forceGrid);
@@ -905,6 +1055,8 @@ function resetSimulation() {
   assetIntegrity = 100.0;
   currentValuation = substrates[activeArtwork].startingValuation;
   scanLineY = 0;
+  lastConservationYear = 0;
+  lastConservationHour = 0;
   assetStatus = 'monitoring';
   isResurrected = false;
   isViewingSnapshot = false;
@@ -1637,7 +1789,7 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale
           cell.stressLimit = 0.2; 
         }
         
-        cell.mechanicalStress += strain;
+        cell.mechanicalStress += strain + cell.soapMigration * 0.003 * speedScale;
         
         // Pre-fracture warning sparks at high-stress threshold coordinates
         let strainRatio = cell.mechanicalStress / cell.stressLimit;
@@ -1651,7 +1803,7 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale
         // or propagate into neighboring cells. This forms beautiful connected veins rather than random dots!
         let canCrack = false;
         
-        if (x < 3 || y < 3 || x > cols - 4 || y > rows - 4 || cell.isRothkoSeam || cell.isKlimtGold) {
+        if (x < 3 || y < 3 || x > cols - 4 || y > rows - 4 || cell.isRothkoSeam || cell.isKlimtGold || cell.soapMigration > 0.38) {
           canCrack = true; // Stretcher frames and layered seams act as boundary stress concentrators
         } 
         else if (activeArtwork === 'pollock' && cell.isPollockDrip && random(1.0) < min(0.9, 0.04 * speedScale)) {
@@ -1673,21 +1825,20 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale
       }
       
       // B. PHOTOCHEMICAL PHOTO-FADING (Violet / Cyan)
-      if (!cell.isRestored) {
-        // Light touches the whole canvas simultaneously, modulated by shifting cloud shadow noise
-        let uvNoise = noise(x * 0.08, y * 0.08, timeVal);
-        
-        // Spotlight intensity falloff towards edges (standard gallery spotlight simulation)
-        let dx = (x - cols / 2) / (cols / 2);
-        let dy = (y - rows / 3) / (rows / 3);
-        let spotIntensity = max(0.2, 1.0 - (dx * dx + dy * dy) * 0.35);
-        
-        let localUV = uv * uvNoise * spotIntensity;
-        
-        if (localUV > 0.02) {
-          cell.photolyticBleach += localUV * 0.0019 * cell.chemSusceptibility * effectiveEnvScale;
-          cell.photolyticBleach = constrain(cell.photolyticBleach, 0.0, 1.0);
-        }
+      // Restored synthetic resin decays even faster under UV exposure (autoxidative chain scission)
+      let uvNoise = noise(x * 0.08, y * 0.08, timeVal);
+      
+      // Spotlight intensity falloff towards edges (standard gallery spotlight simulation)
+      let dx = (x - cols / 2) / (cols / 2);
+      let dy = (y - rows / 3) / (rows / 3);
+      let spotIntensity = max(0.2, 1.0 - (dx * dx + dy * dy) * 0.35);
+      
+      let localUV = uv * uvNoise * spotIntensity;
+      
+      if (localUV > 0.02) {
+        let uvRate = cell.isRestored ? 2.5 : 1.0;
+        cell.photolyticBleach += localUV * 0.00015 * cell.chemSusceptibility * uvRate * effectiveEnvScale;
+        cell.photolyticBleach = constrain(cell.photolyticBleach, 0.0, 1.0);
       }
       
       // C. MOLECULAR MIGRATION & SAPONIFICATION (Amber / Gold)
@@ -1755,17 +1906,19 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale
       }
       
       // D. BIOLOGICAL DECAY & MOLD CREEP / EFFLORESCENCE (Teal / Green)
-      if (cell.bioSusceptibility > 0.5 && !cell.isRestored) {
+      // Restored resin has a slight resistance but is still vulnerable under high relative humidity
+      if (cell.bioSusceptibility > 0.5) {
         let bioGrowth = 0.0;
+        let isResin = cell.isRestored;
         if (activeArtwork === 'magritte') {
           // Zinc soap haze efflorescence crawling over dark nocturnal paint
           if (rh > 0.4) {
-            bioGrowth = (rh - 0.4) * 0.0014;
+            bioGrowth = (rh - 0.4) * (isResin ? 0.0006 : 0.0014);
           }
         } else {
           // Mold growth on butterfly specimen chitin
           if (rh > 0.6) {
-            bioGrowth = (rh - 0.6) * 0.0022;
+            bioGrowth = (rh - 0.6) * (isResin ? 0.0008 : 0.0022);
           }
         }
         
@@ -1788,17 +1941,22 @@ function updateGenerativeForces(rh, temp, uv, dust, overrideEnvScale, speedScale
       }
       
       // E. ADDITIONAL SLOW DECADE-SCALE CHEMICAL FORCES (Varnish Yellowing, Grime, and Chalking)
-      if (!cell.isRestored) {
-        // 1. Natural Varnish Triterpenoid Oxidation (Yellowing)
-        let yellowingRate = (0.000008 + uv * 0.00018 + (temp - 15.0) * 0.000015) * effectiveEnvScale;
+      // Restored cells (acrylic resin consolidant fills) are still subject to oxidation/yellowing and soot deposition
+      if (true) {
+        // 1. Natural Varnish Triterpenoid Oxidation / Synthetic Resin Yellowing
+        let resinRate = cell.isRestored ? 1.8 : 1.0;
+        let yellowingRate = (((0.000008 + uv * 0.00018 + (temp - 15.0) * 0.000015) / 20.0) * resinRate) * effectiveEnvScale;
         cell.varnishYellowing = constrain(cell.varnishYellowing + yellowingRate, 0.0, 1.0);
         
         // 2. Atmospheric Carbonaceous Soot & Particulate Grime
-        let grimeRate = (dust * 0.00004 + cell.moistureSaturation * 0.00002) * effectiveEnvScale;
+        let grimeNoise = noise(x * 0.12, y * 0.12) * 0.65 + 0.68;
+        let grimeTrap = cell.fractureDensity > 0.0 ? 1.6 : 1.0;
+        let grimeRate = (((dust * 0.00004 + cell.moistureSaturation * 0.00002) / 20.0) * grimeNoise * grimeTrap) * effectiveEnvScale;
         cell.surfaceGrime = constrain(cell.surfaceGrime + grimeRate, 0.0, 1.0);
         
         // 3. Oil Binder Autoxidation & Pigment Chalking
-        if (cell.photolyticBleach > 0.65 || cell.mechanicalStress > 0.65) {
+        // Restored areas do not undergo oil binder chalking
+        if (!cell.isRestored && (cell.photolyticBleach > 0.65 || cell.mechanicalStress > 0.65)) {
           let chalkRate = 0.00028 * (cell.photolyticBleach + cell.mechanicalStress) * effectiveEnvScale;
           cell.paintChalking = constrain(cell.paintChalking + chalkRate, 0.0, 1.0);
         }
@@ -1944,25 +2102,26 @@ function renderRadarGrid() {
                       cell.biologicalCreep * 0.35);
       let alphaBacking = constrain(activity, 0.0, 1.0);
       
+      // Start with a silent, velvety midnight-slate baseline
+      r = 2; g = 2; b = 3;
+      
+      // Faint, dynamic ghost composition backing (always has a subtle base outline that blooms under transition/degradation forces)
+      let visibleAlpha = max(0.06, alphaBacking);
+      let rGhost = 2, gGhost = 2, bGhost = 3;
+      
       if (cell.isRestored) {
-        // SYNTHETIC RESIN PLASTIC GLOW (Neon Cyan / Electric Orange)
-        let noiseSel = noise(x * 0.2, y * 0.2);
-        if (noiseSel < 0.5) {
-          r = colors.syntheticCyan[0];
-          g = colors.syntheticCyan[1];
-          b = colors.syntheticCyan[2];
-        } else {
-          r = colors.syntheticOrange[0];
-          g = colors.syntheticOrange[1];
-          b = colors.syntheticOrange[2];
-        }
-      } else {
-        // Start with a silent, velvety midnight-slate baseline
-        r = 2; g = 2; b = 3;
+        const themeObj = themeColors[activeTheme] || themeColors.xray;
+        const consColor = themeObj.conserve || [0, 255, 200];
         
-        // Faint, dynamic ghost composition backing (always has a subtle base outline that blooms under transition/degradation forces)
-        let visibleAlpha = max(0.06, alphaBacking);
-        let rGhost = 2, gGhost = 2, bGhost = 3;
+        // Dynamic visual duality of conservation:
+        // - At spectralStainVal = 0 (standard light), it faithfully mimics the original pigment colors to restore visual integrity.
+        // - At spectralStainVal = 1 (forensic light), it shifts to the high-contrast synthetic consolidant accent color.
+        let blendFactor = lerp(0.15, 0.85, spectralStainVal);
+        rGhost = lerp(cell.origR || 100, consColor[0], blendFactor);
+        gGhost = lerp(cell.origG || 100, consColor[1], blendFactor);
+        bGhost = lerp(cell.origB || 100, consColor[2], blendFactor);
+        visibleAlpha = 1.0;
+      } else {
         
         if (activeArtwork === 'basquiat') {
           let img = artworkImages.basquiat;
@@ -2345,10 +2504,11 @@ function renderRadarGrid() {
             intensity = constrain(intensity + activeFlicker * 35.0, 0, 255);
           }
           
-          // Completely convert original colors to a neutral greyscale baseline before lerping, ensuring zero raw color bleed under stain
-          rGhost = intensity;
-          gGhost = intensity;
-          bGhost = intensity;
+          // Completely convert original colors to a neutral greyscale baseline before lerping, ensuring zero raw color bleed under stain.
+          // Darken the background composition more aggressively to slate gray under spectral stain so that overlays stand out in maximum high-contrast relief.
+          rGhost = intensity * 0.12;
+          gGhost = intensity * 0.12;
+          bGhost = intensity * 0.16;
           
           const themeObj = themeColors[activeTheme] || themeColors.xray;
           const ramp = themeObj.ramp;
@@ -2371,12 +2531,41 @@ function renderRadarGrid() {
             specB = lerp(ramp[idx][2], ramp[idx+1][2], t);
           }
           
-          // Spec values mapped cleanly to raw ghost values without intermediate overrides
-          
-          rGhost = lerp(rGhost, specR, spectralStainVal);
-          gGhost = lerp(gGhost, specG, spectralStainVal);
-          bGhost = lerp(bGhost, specB, spectralStainVal);
+          // Spec values mapped cleanly to raw ghost values without intermediate overrides.
+          // Lerp using activeStainVal (gated by local decay) to prevent pristine areas from turning bright/white under high stain values.
+          rGhost = lerp(rGhost, specR, activeStainVal);
+          gGhost = lerp(gGhost, specG, activeStainVal);
+          bGhost = lerp(bGhost, specB, activeStainVal);
         }
+      }
+      
+      // Apply slow chemical glazes directly to the backing canvas before blending with output pixels.
+      // This keeps the base canvas realistic and prevents global yellowing/grime from washing out
+      // the active, localized overlay indicators on top.
+      if (cell.paintChalking > 0.02) {
+        let intensity = (rGhost + gGhost + bGhost) / 3.0;
+        rGhost = lerp(rGhost, intensity + 30, cell.paintChalking * 0.85);
+        gGhost = lerp(gGhost, intensity + 30, cell.paintChalking * 0.85);
+        bGhost = lerp(bGhost, intensity + 35, cell.paintChalking * 0.85);
+      }
+      if (cell.varnishYellowing > 0.02) {
+        let yR = lerp(colors.yellowing[0] * 0.7, currentColors.yellowing[0], spectralStainVal);
+        let yG = lerp(colors.yellowing[1] * 0.7, currentColors.yellowing[1], spectralStainVal);
+        let yB = lerp(colors.yellowing[2] * 0.7, currentColors.yellowing[2], spectralStainVal);
+        rGhost = lerp(rGhost, yR, cell.varnishYellowing * 0.75);
+        gGhost = lerp(gGhost, yG, cell.varnishYellowing * 0.75);
+        bGhost = lerp(bGhost, yB, cell.varnishYellowing * 0.75);
+      }
+      if (cell.surfaceGrime > 0.02) {
+        let gR = lerp(colors.grime[0] * 0.4, currentColors.grime[0], spectralStainVal);
+        let gG = lerp(colors.grime[1] * 0.4, currentColors.grime[1], spectralStainVal);
+        let gB = lerp(colors.grime[2] * 0.4, currentColors.grime[2], spectralStainVal);
+        let grimeNoise = noise(x * 0.4, y * 0.4) * 0.15 - 0.075;
+        let grimeStrength = constrain(cell.surfaceGrime * 0.85 + grimeNoise, 0.0, 1.0);
+        rGhost = lerp(rGhost, gR, grimeStrength);
+        gGhost = lerp(gGhost, gG, grimeStrength);
+        bGhost = lerp(bGhost, gB, grimeStrength);
+      }
         
         r = lerp(r, rGhost, visibleAlpha);
         g = lerp(g, gGhost, visibleAlpha);
@@ -2386,7 +2575,6 @@ function renderRadarGrid() {
           // ==================== UNIFIED VITRINE VIEW ====================
           // Non-Saturating Interpolated Layer Blending Stack
           
-          const currentColors = themeColors[activeTheme] || themeColors.xray;
           
           // Layer 1: Moisture Saturation overlay (Soft Auroral Cobalt Blue Glow / Sea-pine)
           if (cell.moistureSaturation > 0.02) {
@@ -2441,11 +2629,11 @@ function renderRadarGrid() {
             g = lerp(g, bG, aBleach);
             b = lerp(b, bB, aBleach);
             
-            // If fully cooked, coordinates fade back into a silent, cold carbon-ash void
+            // If fully cooked, blend towards sun-bleached cream/white
             if (fullyBleached > 0.94) {
-              r = lerp(r, 6, 0.7);
-              g = lerp(g, 6, 0.7);
-              b = lerp(b, 8, 0.7);
+              r = lerp(r, 242, 0.7);
+              g = lerp(g, 240, 0.7);
+              b = lerp(b, 232, 0.7);
             }
           }
           
@@ -2527,33 +2715,7 @@ function renderRadarGrid() {
             }
           }
           
-          // Layer 7A: Paint Chalking (Late-stage powdery desaturation)
-          if (cell.paintChalking > 0.02) {
-            let intensity = (r + g + b) / 3.0;
-            r = lerp(r, intensity + 30, cell.paintChalking * 0.85);
-            g = lerp(g, intensity + 30, cell.paintChalking * 0.85);
-            b = lerp(b, intensity + 35, cell.paintChalking * 0.85);
-          }
-          
-          // Layer 7B: Varnish Yellowing & Oxidation (Theme-mapped warm filter / abstract tone)
-          if (cell.varnishYellowing > 0.02) {
-            let yR = lerp(colors.yellowing[0] * 0.7, currentColors.yellowing[0], spectralStainVal);
-            let yG = lerp(colors.yellowing[1] * 0.7, currentColors.yellowing[1], spectralStainVal);
-            let yB = lerp(colors.yellowing[2] * 0.7, currentColors.yellowing[2], spectralStainVal);
-            r = lerp(r, yR, cell.varnishYellowing * 0.75);
-            g = lerp(g, yG, cell.varnishYellowing * 0.75);
-            b = lerp(b, yB, cell.varnishYellowing * 0.75);
-          }
-          
-          // Layer 7C: Surface Grime & Carbonaceous Soot (Theme-mapped dark glaze / abstract tone)
-          if (cell.surfaceGrime > 0.02) {
-            let gR = lerp(colors.grime[0] * 0.4, currentColors.grime[0], spectralStainVal);
-            let gG = lerp(colors.grime[1] * 0.4, currentColors.grime[1], spectralStainVal);
-            let gB = lerp(colors.grime[2] * 0.4, currentColors.grime[2], spectralStainVal);
-            r = lerp(r, gR, cell.surfaceGrime * 0.85);
-            g = lerp(g, gG, cell.surfaceGrime * 0.85);
-            b = lerp(b, gB, cell.surfaceGrime * 0.85);
-          }
+          // Slow chemical glazes (Chalking, Yellowing, Grime) have been moved to filter the backing canvas directly.
 
           // Shimmering high-frequency State-Change & Spatial Edge Threshold highlighting
           // Applied at the end of the visible stack so it sits on top of all layering & void overrides!
@@ -2651,9 +2813,9 @@ function renderRadarGrid() {
             b = lerp(b, bB, aBleach);
             
             if (fullyBleached > 0.94) {
-              r = lerp(r, 6, 0.7);
-              g = lerp(g, 6, 0.7);
-              b = lerp(b, 8, 0.7);
+              r = lerp(r, 242, 0.7);
+              g = lerp(g, 240, 0.7);
+              b = lerp(b, 232, 0.7);
             }
           }
         } 
@@ -2732,7 +2894,8 @@ function renderRadarGrid() {
         else if (renderMode === 'grime') {
           // ==================== SURFACE GRIME VIEW ====================
           if (cell.surfaceGrime > 0.02) {
-            let aGrime = cell.surfaceGrime * 0.9;
+            let grimeNoise = noise(x * 0.4, y * 0.4) * 0.15 - 0.075;
+            let aGrime = constrain(cell.surfaceGrime * 0.9 + grimeNoise, 0.0, 1.0);
             let gR = lerp(colors.grime[0] * 0.5, currentColors.grime[0], spectralStainVal);
             let gG = lerp(colors.grime[1] * 0.5, currentColors.grime[1], spectralStainVal);
             let gB = lerp(colors.grime[2] * 0.5, currentColors.grime[2], spectralStainVal);
@@ -2741,7 +2904,6 @@ function renderRadarGrid() {
             b = lerp(b, gB, aGrime);
           }
         }
-      }
       
       // Directly output sharp, un-aliased circular LED diode points (creates an intentional hardware LED matrix grid)
       if (isOpalActive) {
@@ -2862,29 +3024,29 @@ function updateAssetMetrics() {
   
   // Custom normalize bounds for visual weight based on material physics
   if (activeArtwork === 'basquiat') {
-    mechanicalDecay = constrain(mechanicalDecay * 2.2, 0, 100);
-    chemicalDecay = constrain(chemicalDecay * 4.2, 0, 100);
+    mechanicalDecay = constrain(mechanicalDecay * 1.0, 0, 100);
+    chemicalDecay = constrain(chemicalDecay * 1.3, 0, 100);
     biologicalDecay = 0.0;
   } else if (activeArtwork === 'rothko') {
-    mechanicalDecay = constrain(mechanicalDecay * 0.9, 0, 100);
-    chemicalDecay = constrain(chemicalDecay * 3.4, 0, 100);
+    mechanicalDecay = constrain(mechanicalDecay * 0.8, 0, 100);
+    chemicalDecay = constrain(chemicalDecay * 1.2, 0, 100);
     biologicalDecay = 0.0;
   } else if (activeArtwork === 'hirst') {
-    mechanicalDecay = constrain(mechanicalDecay * 1.5, 0, 100);
+    mechanicalDecay = constrain(mechanicalDecay * 1.0, 0, 100);
     chemicalDecay = 0.0;
-    biologicalDecay = constrain(biologicalDecay * 14.0, 0, 100);
+    biologicalDecay = constrain(biologicalDecay * 2.8, 0, 100);
   } else if (activeArtwork === 'klimt') {
-    mechanicalDecay = constrain(mechanicalDecay * 2.6, 0, 100);
-    chemicalDecay = constrain(chemicalDecay * 4.8, 0, 100); // silver oxidation tarnish
+    mechanicalDecay = constrain(mechanicalDecay * 1.1, 0, 100);
+    chemicalDecay = constrain(chemicalDecay * 1.4, 0, 100); // silver oxidation tarnish
     biologicalDecay = 0.0;
   } else if (activeArtwork === 'pollock') {
-    mechanicalDecay = constrain(mechanicalDecay * 4.5, 0, 100); // enamel alligator cracks
+    mechanicalDecay = constrain(mechanicalDecay * 1.2, 0, 100); // enamel alligator cracks
     chemicalDecay = 0.0;
     biologicalDecay = 0.0;
   } else if (activeArtwork === 'magritte') {
-    mechanicalDecay = constrain(mechanicalDecay * 1.2, 0, 100);
-    chemicalDecay = constrain(chemicalDecay * 3.8, 0, 100); // Prussian Blue sky photolysis
-    biologicalDecay = constrain(biologicalDecay * 4.8, 0, 100); // zinc soap efflorescence
+    mechanicalDecay = constrain(mechanicalDecay * 1.0, 0, 100);
+    chemicalDecay = constrain(chemicalDecay * 1.3, 0, 100); // Prussian Blue sky photolysis
+    biologicalDecay = constrain(biologicalDecay * 1.5, 0, 100); // zinc soap efflorescence
   }
   
   // Progress bar updates
@@ -2897,17 +3059,34 @@ function updateAssetMetrics() {
   barBiological.style.width = biologicalDecay + "%";
   txtBiological.innerText = biologicalDecay.toFixed(1) + "%";
   
-  // Substrate Physical Integrity
+  // Substrate Physical Integrity / Theseus State Transition
+  let restoredCount = 0;
+  for (let x = 0; x < cols; x++) {
+    for (let y = 0; y < rows; y++) {
+      if (forceGrid[x][y].isRestored) {
+        restoredCount++;
+      }
+    }
+  }
+  let syntheticPercentage = (restoredCount / count) * 100.0;
+  let authenticityPercentage = 100.0 - syntheticPercentage;
+  
   assetIntegrity = 100.0 - (mechanicalDecay * 0.35 + chemicalDecay * 0.35 + biologicalDecay * 0.30);
   assetIntegrity = constrain(assetIntegrity, 0.0, 100.0);
   
-  btnIntegrityIndicator.innerText = "Integrity: " + assetIntegrity.toFixed(1) + "%";
+  let currentYearVal = Math.max(0, getCurrentSimulatedYear(simulatedFrames));
+  if (currentYearVal > 1000 || syntheticPercentage > 50.0) {
+    btnIntegrityIndicator.innerText = "Authenticity: " + authenticityPercentage.toFixed(1) + "%";
+  } else {
+    btnIntegrityIndicator.innerText = "Integrity: " + assetIntegrity.toFixed(1) + "%";
+  }
   
-  // Style integrity button dynamically
-  if (assetIntegrity < 20.0) {
+  // Style integrity button dynamically based on authenticity or integrity
+  let displayValue = (currentYearVal > 1000 || syntheticPercentage > 50.0) ? authenticityPercentage : assetIntegrity;
+  if (displayValue < 20.0) {
     btnIntegrityIndicator.style.color = "var(--accent-red)";
     btnIntegrityIndicator.style.borderColor = "rgba(255, 56, 56, 0.4)";
-  } else if (assetIntegrity < 70.0) {
+  } else if (displayValue < 70.0) {
     btnIntegrityIndicator.style.color = "var(--accent-orange)";
     btnIntegrityIndicator.style.borderColor = "rgba(255, 127, 80, 0.4)";
   } else {
@@ -2928,17 +3107,17 @@ function updateAssetMetrics() {
     // Scale for visual feedback matching asset levels
     let scaledDecay = avgDecay;
     if (activeArtwork === 'basquiat') {
-      scaledDecay *= 2.2;
+      scaledDecay *= 1.1;
     } else if (activeArtwork === 'rothko') {
-      scaledDecay *= 1.5;
+      scaledDecay *= 1.0;
     } else if (activeArtwork === 'hirst') {
-      scaledDecay *= 3.5;
+      scaledDecay *= 1.2;
     } else if (activeArtwork === 'klimt') {
-      scaledDecay *= 2.0;
+      scaledDecay *= 1.1;
     } else if (activeArtwork === 'pollock') {
-      scaledDecay *= 3.0;
+      scaledDecay *= 1.2;
     } else if (activeArtwork === 'magritte') {
-      scaledDecay *= 2.2;
+      scaledDecay *= 1.1;
     }
     
     scaledDecay = constrain(scaledDecay, 0.0, 100.0);
@@ -3071,6 +3250,10 @@ function switchArtwork(artworkKey) {
   rows = Math.floor(targetHeight / cellPitch);
   
   resizeCanvas(cols * cellPitch, rows * cellPitch);
+  let container = document.getElementById('canvas-container');
+  if (container && container.style && typeof container.style.setProperty === 'function') {
+    container.style.setProperty('--canvas-aspect', (cols / rows).toString());
+  }
   syncBloomCanvasSize();
   
   document.getElementById('current-lot-lbl').innerText = "Sotheby's " + substrates[artworkKey].lot;
@@ -3232,6 +3415,7 @@ function loadEnvironmentState(cycleKey) {
     biologicalDecay = state.biologicalDecay;
     totalDegradation = state.totalDegradation;
     currentValuation = state.currentValuation;
+    syncConservationTimers();
   } else {
     initFreshEnvironmentState();
   }
@@ -3250,6 +3434,7 @@ function initFreshEnvironmentState() {
   liveSimulationGrid = null;
   liveSimulatedFrames = 0;
   simulatedFrames = 0;
+  syncConservationTimers();
   
   // Re-generate authentic, physics-based snapshots for this situation and load the Pristine baseline state
   generatePhysicsSnapshots();
@@ -3415,27 +3600,56 @@ function updateTimelineHUD() {
     let activeFrames = isViewingSnapshot ? liveSimulatedFrames : simulatedFrames;
     let currentYear = getCurrentSimulatedYear(activeFrames);
     
+    // Determine if Theseus State is active
+    let count = cols * rows;
+    let restoredCount = 0;
+    for (let x = 0; x < cols; x++) {
+      for (let y = 0; y < rows; y++) {
+        if (forceGrid[x][y].isRestored) {
+          restoredCount++;
+        }
+      }
+    }
+    let syntheticPercentage = (restoredCount / count) * 100.0;
+    let isTheseus = (currentYear > 1000 || syntheticPercentage > 50.0);
+    
     let liveTimeTitle = currentYear;
     let liveDescText = "";
     if (activeCycle === 'freeport') {
       let totalMonths = Math.floor(activeFrames);
       let years = Math.floor(totalMonths / 12);
-      liveDescText = `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
+      liveDescText = isTheseus
+        ? `Theseus Simulacrum: ${syntheticPercentage.toFixed(0)}% synthetic consolidant replacement at ${years}y.`
+        : `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
     } else if (activeCycle === 'penthouse') {
       let totalDays = Math.floor(activeFrames);
       let years = Math.floor(totalDays / 365);
-      liveDescText = `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
+      liveDescText = isTheseus
+        ? `Theseus Simulacrum: ${syntheticPercentage.toFixed(0)}% synthetic consolidant replacement at ${years}y.`
+        : `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
     } else if (activeCycle === 'museum') {
       let totalWeeks = Math.floor(activeFrames);
       let years = Math.floor(totalWeeks / 52);
-      liveDescText = `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
+      liveDescText = isTheseus
+        ? `Theseus Simulacrum: ${syntheticPercentage.toFixed(0)}% synthetic consolidant replacement at ${years}y.`
+        : `Live Feed: Active running simulation at ${years}y elapsed. Click to return and resume.`;
     } else if (activeCycle === 'catastrophe') {
       let totalMinutes = Math.floor(activeFrames * 10);
       let totalHours = Math.floor(totalMinutes / 60);
       let days = Math.floor(totalHours / 24);
       let hours = totalHours % 24;
       liveTimeTitle = `+${totalHours}h`;
-      liveDescText = `Live Feed: Active running simulation at ${days}d, ${hours}h elapsed. Click to return and resume.`;
+      liveDescText = isTheseus
+        ? `Theseus Simulacrum: ${syntheticPercentage.toFixed(0)}% synthetic consolidant replacement at +${totalHours}h.`
+        : `Live Feed: Active running simulation at ${days}d, ${hours}h elapsed. Click to return and resume.`;
+    }
+    
+    if (isTheseus) {
+      if (activeCycle !== 'catastrophe') {
+        liveTimeTitle = `${currentYear}y [THESEUS]`;
+      } else {
+        liveTimeTitle = `${liveTimeTitle} [THESEUS]`;
+      }
     }
     
     liveCardYearEl.innerText = liveTimeTitle;
@@ -3569,6 +3783,7 @@ function goToMilestone(index) {
   } else if (activeCycle === 'catastrophe') {
     simulatedFrames = m.elapsed * 6; // 6 frames per hour (1 frame = 10 minutes)
   }
+  syncConservationTimers();
   
   // Sync the diagnostic UI sliders and integrity indicators
   updateAssetMetrics();
@@ -3627,6 +3842,7 @@ function returnToLiveSimulation() {
     forceGrid = deepCopyGrid(liveSimulationGrid);
     simulatedFrames = liveSimulatedFrames;
   }
+  syncConservationTimers();
   
   // Refresh timeline snapshots to update active highlight class
   renderTimelineSnapshots();
@@ -3842,5 +4058,30 @@ function syncBloomCanvasSize() {
   if (mainCanvas && bloomCanvas) {
     bloomCanvas.width = mainCanvas.width;
     bloomCanvas.height = mainCanvas.height;
+  }
+  updateCanvasScaleClass();
+}
+
+function updateCanvasScaleClass() {
+  let mainCanvas = document.getElementById('simulation-canvas');
+  if (mainCanvas) {
+    let isScaled = (mainCanvas.clientWidth !== mainCanvas.width || mainCanvas.clientHeight !== mainCanvas.height);
+    if (isScaled) {
+      mainCanvas.classList.add('is-scaled');
+    } else {
+      mainCanvas.classList.remove('is-scaled');
+    }
+  }
+}
+
+function syncConservationTimers() {
+  if (activeCycle === 'catastrophe') {
+    lastConservationHour = Math.floor(simulatedFrames / 6);
+  } else {
+    let years = 0;
+    if (activeCycle === 'freeport') years = Math.floor(simulatedFrames / 12);
+    else if (activeCycle === 'museum') years = Math.floor(simulatedFrames / 52);
+    else if (activeCycle === 'penthouse') years = Math.floor(simulatedFrames / 365);
+    lastConservationYear = years;
   }
 }

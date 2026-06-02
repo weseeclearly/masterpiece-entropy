@@ -159,6 +159,7 @@ main {
 
 /* Dynamic Interactive Art Frames */
 .art-frame-wrapper {
+  position: relative;
   padding: 16px;
   background: #111;
   border-radius: 4px;
@@ -167,11 +168,13 @@ main {
     0 0 40px rgba(0, 0, 0, 0.5);
   transition: var(--transition-smooth);
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   max-width: 100%;
   max-height: 100%;
   box-sizing: border-box;
+  --frame-padding-border: 32px;
 }
 
 /* Basquiat wood-plank frame structure */
@@ -183,6 +186,7 @@ main {
     0 15px 40px rgba(0, 0, 0, 0.9);
   padding: 10px;
   border-image: repeating-linear-gradient(45deg, #1c130e, #1c130e 10px, #2c1d16 10px, #2c1d16 20px) 20;
+  --frame-padding-border: 44px;
 }
 
 /* Rothko premium gallery floating frame */
@@ -193,6 +197,7 @@ main {
   box-shadow: 
     0 30px 60px rgba(0, 0, 0, 0.95),
     inset 0 0 10px rgba(255, 255, 255, 0.03);
+  --frame-padding-border: 40px;
 }
 
 /* Hirst sterile steel/glass display frame */
@@ -203,6 +208,7 @@ main {
     inset 0 0 15px rgba(255, 255, 255, 0.1),
     0 20px 50px rgba(0, 0, 0, 0.85);
   padding: 8px;
+  --frame-padding-border: 32px;
 }
 
 /* Klimt ornate double-gilded museum frame */
@@ -214,6 +220,7 @@ main {
     inset 0 0 30px rgba(0, 0, 0, 0.95),
     0 25px 55px rgba(0, 0, 0, 0.9);
   border-image: repeating-linear-gradient(45deg, #8b6508, #d4af37 10px, #b8860b 20px) 20;
+  --frame-padding-border: 52px;
 }
 
 /* Pollock dark raw lumber strip frame */
@@ -224,6 +231,7 @@ main {
   box-shadow: 
     0 25px 50px rgba(0,0,0,0.92),
     inset 0 0 15px rgba(255,255,255,0.02);
+  --frame-padding-border: 56px;
 }
 
 /* Magritte mahogany museum molding and white linen mat */
@@ -234,21 +242,58 @@ main {
   box-shadow: 
     inset 0 0 12px rgba(0,0,0,0.18),
     0 22px 48px rgba(0,0,0,0.92);
+  --frame-padding-border: 56px;
+}
+
+/* Sleek contemporary anodized aluminum frame for Supra */
+.frame-supra {
+  background: #0b0914;
+  border: 6px solid #4a154b;
+  padding: 16px;
+  box-shadow: 
+    0 25px 50px rgba(0,0,0,0.92),
+    inset 0 0 15px rgba(255,255,255,0.02);
+  border-image: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)) 1;
+  --frame-padding-border: 44px;
+}
+
+/* Ornate gold and crimson frame for Thunder & Dawn */
+.frame-thunderDawn {
+  background: #1a0f0f;
+  border: 10px solid #b8860b;
+  padding: 15px;
+  box-shadow: 
+    inset 0 0 25px rgba(0, 0, 0, 0.95),
+    0 25px 55px rgba(0, 0, 0, 0.9);
+  border-image: repeating-linear-gradient(45deg, #b8860b, #d4af37 10px, #8b0000 20px) 20;
+  --frame-padding-border: 50px;
+}
+
+#canvas-container {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: var(--canvas-aspect, 1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  min-height: 0;
+  background-color: #000;
+  flex: 1;
 }
 
 #simulation-canvas {
-  border-radius: 2px;
+  border-radius: 0;
   background-color: #000;
   display: block;
-  max-width: 100%;
-  max-height: 100%;
-  width: auto !important;
-  height: auto !important;
-  object-fit: contain;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: -webkit-crisp-edges;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  width: 100% !important;
+  height: 100% !important;
+  image-rendering: auto;
+}
+
+#simulation-canvas.is-scaled {
+  filter: blur(0.3px);
 }
 
 /* Interactive UV Flashlight & Scrape Overlays */
@@ -892,7 +937,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  border-radius: 4px;
+  border-radius: 0;
   z-index: 10;
   transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
   mix-blend-mode: screen; /* Additive blending */

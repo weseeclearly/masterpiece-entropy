@@ -347,6 +347,9 @@
           <button class="sim-btn btn-danger" id="btn-reset" title="Acquire pristine duplicate and reset decay calculations">
             Restore Asset
           </button>
+          <button class="sim-btn" id="btn-auto-conserve" title="Activate Auto-Conservation Field to dynamically run preservation algorithms on active cracks and grime in real-time" style="grid-column: span 2; font-weight: 700; font-size: 0.8rem; background: rgba(30, 144, 255, 0.05); color: var(--accent-blue); border: 1px solid rgba(30, 144, 255, 0.2); transition: var(--transition-smooth); outline: none;">
+            🛡️ AUTO-CONSERVATION: INACTIVE
+          </button>
         </div>
 
         <!-- Premium Visual Theme / Schema Selector -->
@@ -387,9 +390,9 @@
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 0.58rem; color: var(--text-secondary); font-family: var(--font-mono);">Bloom Intensity</span>
-            <span id="lbl-bloom-intensity" style="font-size: 0.65rem; color: var(--accent-green); font-family: var(--font-mono); font-weight: 600;">95%</span>
+            <span id="lbl-bloom-intensity" style="font-size: 0.65rem; color: var(--accent-green); font-family: var(--font-mono); font-weight: 600;">30%</span>
           </div>
-          <input type="range" id="slider-bloom-intensity" min="0" max="100" value="95" class="premium-slider" style="width: 100%; accent-color: var(--accent-green); cursor: pointer; background: rgba(255, 255, 255, 0.1); height: 4px; border-radius: 2px;" title="Adjust the strength of the additive bloom layer">
+          <input type="range" id="slider-bloom-intensity" min="0" max="100" value="30" class="premium-slider" style="width: 100%; accent-color: var(--accent-green); cursor: pointer; background: rgba(255, 255, 255, 0.1); height: 4px; border-radius: 2px;" title="Adjust the strength of the additive bloom layer">
         </div>
 
 
