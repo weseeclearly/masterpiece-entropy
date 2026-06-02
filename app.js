@@ -646,6 +646,7 @@ const themeColors = {
     ],
     moisture: [70, 110, 145],
     uvFlux: [230, 160, 110],
+    bleach: [250, 245, 238],
     sapon: [240, 210, 150],
     biological: [205, 175, 138],
     stress: [215, 145, 140]
@@ -1083,6 +1084,20 @@ function configureSubstrateFields() {
   
   let useFallback = true;
   
+  // Initialize default edgeGradient and eatingFlicker to 0
+  for (let x = 0; x < cols; x++) {
+    for (let y = 0; y < rows; y++) {
+      if (forceGrid[x] && forceGrid[x][y]) {
+        forceGrid[x][y].edgeGradient = 0.0;
+        forceGrid[x][y].eatingFlicker = 0.0;
+        // Default color fallback
+        forceGrid[x][y].origR = 38;
+        forceGrid[x][y].origG = 115;
+        forceGrid[x][y].origB = 209;
+      }
+    }
+  }
+
   if (img && img.width > 10) {
     try {
       img.loadPixels();
@@ -1126,49 +1141,36 @@ function configureSubstrateFields() {
           
           // Dynamic material mappings and composition classification
           if (activeArtwork === 'basquiat') {
-            // Target archetype colors for continuous, high-fidelity material RBF mapping
             const cLinen = [82, 61, 41];
             const cDark = [35, 35, 40];
             const cRed = [200, 45, 55];
             const cYellow = [230, 180, 30];
             const cWhite = [230, 230, 230];
             
-            // Calculate Euclidean distances in 3D RGB color space
             let dLinen = dist(r, g, b, cLinen[0], cLinen[1], cLinen[2]);
             let dDark = dist(r, g, b, cDark[0], cDark[1], cDark[2]);
             let dRed = dist(r, g, b, cRed[0], cRed[1], cRed[2]);
             let dYellow = dist(r, g, b, cYellow[0], cYellow[1], cYellow[2]);
             let dWhite = dist(r, g, b, cWhite[0], cWhite[1], cWhite[2]);
             
-            // Smooth Gaussian Radial Basis Functions to determine pixel blend contribution
             let wLinen = Math.exp(-dLinen * dLinen / 1800);
             let wDark = Math.exp(-dDark * dDark / 1600);
             let wRed = Math.exp(-dRed * dRed / 1200);
             let wYellow = Math.exp(-dYellow * dYellow / 1500);
             let wWhite = Math.exp(-dWhite * dWhite / 1200);
-            
-            // Prussian Blue acts as the absolute background baseline weight
             let wBlue = max(0.0, 1.0 - (wLinen + wDark + wRed + wYellow + wWhite));
             
-            // Normalize weights to sum perfectly to 1.0, ensuring mathematical parameter conservation
             let sumW = wLinen + wDark + wRed + wYellow + wWhite + wBlue;
             if (sumW > 0.001) {
-              wLinen /= sumW;
-              wDark /= sumW;
-              wRed /= sumW;
-              wYellow /= sumW;
-              wWhite /= sumW;
-              wBlue /= sumW;
+              wLinen /= sumW; wDark /= sumW; wRed /= sumW; wYellow /= sumW; wWhite /= sumW; wBlue /= sumW;
             }
             
-            // Continuous, noise-free property interpolation directly mapped from pixel color values
             cell.stressLimit = wBlue * 0.75 + wLinen * 0.34 + wDark * 0.90 + wRed * 0.85 + wYellow * 0.65 + wWhite * 0.25;
             cell.chemSusceptibility = wBlue * 0.52 + wLinen * 0.20 + wDark * 0.10 + wRed * 0.30 + wYellow * 0.60 + wWhite * 0.80;
             cell.bioSusceptibility = wBlue * 0.15 + wLinen * 0.40 + wDark * 0.05 + wRed * 0.10 + wYellow * 0.12 + wWhite * 0.25;
             cell.tackiness = wDark * 0.60 + wWhite * 0.80 + wYellow * 0.30;
             cell.moistureSaturation = wLinen * 0.40;
             
-            // Define discrete category tags based on the dominant material weight for text UI readouts
             let maxW = Math.max(wLinen, wDark, wRed, wYellow, wWhite, wBlue);
             if (maxW === wLinen) {
               cell.materialType = 'Unprimed Linen Support';
@@ -1187,21 +1189,15 @@ function configureSubstrateFields() {
               cell.isBasquiatTeeth = true;
               cell.materialType = 'Mustard Oil Paint';
             } else if (maxW === wWhite) {
-              if (y > rows * 0.08 && y < rows * 0.26 && x > cols * 0.3 && x < cols * 0.8) {
-                cell.isBasquiatScribble = true;
-                cell.materialType = 'White Oilstick Script';
-              } else {
-                cell.isBasquiatScribble = true;
-                cell.materialType = 'White Oilstick Highlight';
-              }
+              cell.isBasquiatScribble = true;
+              cell.materialType = y > rows * 0.08 && y < rows * 0.26 && x > cols * 0.3 && x < cols * 0.8 ? 'White Oilstick Script' : 'White Oilstick Highlight';
             } else {
               cell.materialType = 'Prussian Blue Acrylic';
             }
           } else if (activeArtwork === 'rothko') {
-            cell.stressLimit = 0.96; 
+            cell.stressLimit = 0.96;
             cell.bioSusceptibility = 0.05;
             
-            // Classify by actual color to avoid hard horizontal lines
             let isViolet = (b > g * 1.25 && r > g * 1.05);
             let isGreen = (g > r * 1.15 && g > b * 1.05);
             let isRed = (r > g * 1.4 && r > b * 1.4);
@@ -1219,30 +1215,24 @@ function configureSubstrateFields() {
               cell.materialType = 'PR49 Lithol Red Azo';
               cell.stressLimit = 0.96;
             } else {
-              // Organic transitional zone (seam)
               cell.isRothkoSeam = true;
               cell.stressLimit = 0.55;
               cell.materialType = 'Hygroscopic Animal Glue';
             }
-          } 
-          else if (activeArtwork === 'hirst') {
+          } else if (activeArtwork === 'hirst') {
             let colorDist = dist(r, g, b, bgR, bgG, bgB);
-            
             if (colorDist > 32) {
-              // High-contrast coordinates indicate organic butterfly specimen
               cell.isHirstSpecimen = true;
-              cell.bioSusceptibility = 0.99; 
+              cell.bioSusceptibility = 0.99;
               cell.stressLimit = 0.88;
               cell.materialType = 'Morpho Peleides Chitin';
             } else {
-              // Clean glossy background
-              cell.stressLimit = 0.24; 
+              cell.stressLimit = 0.24;
               cell.chemSusceptibility = 0.1;
               cell.bioSusceptibility = 0.01;
               cell.materialType = 'Commercial Ripolin Alkyd';
             }
-          } 
-          else if (activeArtwork === 'klimt') {
+          } else if (activeArtwork === 'klimt') {
             cell.stressLimit = 0.65;
             cell.chemSusceptibility = 0.2;
             cell.bioSusceptibility = 0.0;
@@ -1271,8 +1261,7 @@ function configureSubstrateFields() {
               cell.chemSusceptibility = 0.4;
               cell.stressLimit = 0.75;
             }
-          } 
-          else if (activeArtwork === 'pollock') {
+          } else if (activeArtwork === 'pollock') {
             cell.stressLimit = 0.85;
             cell.chemSusceptibility = 0.0;
             cell.bioSusceptibility = 0.0;
@@ -1293,8 +1282,7 @@ function configureSubstrateFields() {
               else if (isRed) cell.materialType = 'Alizarin Crimson Splatter';
               else cell.materialType = 'Liquid Silver Enamel';
             }
-          } 
-          else if (activeArtwork === 'magritte') {
+          } else if (activeArtwork === 'magritte') {
             cell.stressLimit = 0.92;
             cell.bioSusceptibility = 0.0;
             
@@ -1307,61 +1295,63 @@ function configureSubstrateFields() {
               cell.stressLimit = 0.95;
             } else if (isSky) {
               cell.isMagritteSky = true;
-              cell.chemSusceptibility = 0.95; 
+              cell.chemSusceptibility = 0.95;
               cell.materialType = 'Prussian Blue Sky';
             } else {
               cell.isMagritteForest = true;
-              cell.bioSusceptibility = 0.85; 
+              cell.bioSusceptibility = 0.85;
               cell.stressLimit = 0.72;
               cell.materialType = 'Zinc Oxide Oil Base';
+            }
+          } else if (activeArtwork === 'supra') {
+            cell.stressLimit = 0.8;
+            cell.chemSusceptibility = 0.6;
+            cell.bioSusceptibility = 0.1;
+            cell.materialType = 'Silicate Ground Gesso';
+            
+            let isLavender = (r > 110 && b > 120 && g < 150);
+            if (isLavender) {
+              cell.materialType = 'Volatile Lavender Field';
+              cell.chemSusceptibility = 0.9;
+              cell.stressLimit = 0.5;
+            }
+          } else if (activeArtwork === 'thunderDawn') {
+            cell.stressLimit = 0.9;
+            cell.chemSusceptibility = 0.4;
+            cell.bioSusceptibility = 0.05;
+            cell.materialType = 'Charcoal Bokashi Gradient';
+            
+            let isYellow = (r > 160 && g > 140 && b < 100);
+            let isVermilion = (r > 180 && g < 100 && b < 80);
+            if (isYellow) {
+              cell.materialType = 'Mineral Yellow Horizon';
+              cell.stressLimit = 0.7;
+              cell.chemSusceptibility = 0.55;
+            } else if (isVermilion) {
+              cell.materialType = 'Volatile Vermilion Lacquer';
+              cell.stressLimit = 0.45;
+              cell.chemSusceptibility = 0.95;
             }
           }
           
           let nextDecay = cell.moistureSaturation + cell.photolyticBleach + cell.soapMigration + cell.biologicalCreep + cell.fractureDensity;
           let decayDelta = Math.abs(nextDecay - prevDecay);
-          
-          // Gate and update eating front flicker zone
           if (decayDelta > 0.0002) {
             cell.eatingFlicker = lerp(cell.eatingFlicker || 0.0, 1.0, 0.45);
+          } else if (cell.eatingFlicker > 0.01) {
+            cell.eatingFlicker *= 0.93;
           } else {
-            if (cell.eatingFlicker > 0.01) {
-              cell.eatingFlicker *= 0.93; // slowly cool down the flicker zone
-            } else {
-              cell.eatingFlicker = 0.0;
-            }
+            cell.eatingFlicker = 0.0;
           }
         }
       }
-      
-      // Initialize default edgeGradient to 0
-      for (let x = 0; x < cols; x++) {
-        for (let y = 0; y < rows; y++) {
-          forceGrid[x][y].edgeGradient = 0.0;
-        }
-      }
-      
-      // Compute 2D spatial gradients (Sobel central difference) to map composition contours
-      for (let x = 1; x < cols - 1; x++) {
-        for (let y = 1; y < rows - 1; y++) {
-          let cell = forceGrid[x][y];
-          let valL = (forceGrid[x-1][y].origR + forceGrid[x-1][y].origG + forceGrid[x-1][y].origB) / 3.0;
-          let valR = (forceGrid[x+1][y].origR + forceGrid[x+1][y].origG + forceGrid[x+1][y].origB) / 3.0;
-          let valU = (forceGrid[x][y-1].origR + forceGrid[x][y-1].origG + forceGrid[x][y-1].origB) / 3.0;
-          let valD = (forceGrid[x][y+1].origR + forceGrid[x][y+1].origG + forceGrid[x][y+1].origB) / 3.0;
-          
-          let dx = valR - valL;
-          let dy = valD - valU;
-          cell.edgeGradient = Math.sqrt(dx*dx + dy*dy);
-        }
-      }
     } catch (e) {
-      console.warn("Failed to load image pixels (CORS or other issue), falling back to procedural generation:", e);
+      console.warn("Failed to load image pixels, falling back to procedural generation:", e);
       useFallback = true;
     }
   }
   
   if (useFallback) {
-    // FALLBACK PROCEDURAL GENERATION (Ensures perfect backward compatibility if image assets are not loaded yet)
     if (activeArtwork === 'basquiat') {
       for (let x = 0; x < cols; x++) {
         for (let y = 0; y < rows; y++) {
@@ -1369,11 +1359,13 @@ function configureSubstrateFields() {
           cell.chemSusceptibility = 0.52;
           cell.bioSusceptibility = 0.15;
           cell.materialType = 'Prussian Blue Acrylic';
+          cell.origR = 38; cell.origG = 115; cell.origB = 209;
           
           if (x < 6 || x > cols - 7 || y < 6 || y > rows - 7) {
-            cell.stressLimit = 0.34; 
+            cell.stressLimit = 0.34;
             cell.moistureSaturation = 0.4;
             cell.materialType = 'Unprimed Linen Support';
+            cell.origR = 82; cell.origG = 61; cell.origB = 41;
           }
           
           let dx = x - cols / 2;
@@ -1387,13 +1379,15 @@ function configureSubstrateFields() {
             cell.tackiness = 0.95;
             cell.stressLimit = 0.9;
             cell.materialType = 'Nitrocellulose Spray';
+            cell.origR = 40; cell.origG = 40; cell.origB = 48;
           }
           
           if (y < rows/2 - 22 && y > rows/2 - 36 && Math.abs(dx) < 12) {
             cell.isCrown = true;
             cell.tackiness = 0.8;
-            cell.stressLimit = 0.25; 
+            cell.stressLimit = 0.25;
             cell.materialType = 'Linseed-Wax Oilstick';
+            cell.origR = 72; cell.origG = 12; cell.origB = 30;
           }
         }
       }
@@ -1401,7 +1395,7 @@ function configureSubstrateFields() {
       for (let x = 0; x < cols; x++) {
         for (let y = 0; y < rows; y++) {
           let cell = forceGrid[x][y];
-          cell.stressLimit = 0.96; 
+          cell.stressLimit = 0.96;
           cell.bioSusceptibility = 0.05;
           
           let yNorm = y / rows;
@@ -1413,21 +1407,24 @@ function configureSubstrateFields() {
             cell.chemSusceptibility = 0.65;
             cell.materialType = 'Violet Dammar Wash';
             cell.stressLimit = 0.88;
+            cell.origR = 32; cell.origG = 8; cell.origB = 68;
           } else if (yNorm < border2) {
             cell.chemSusceptibility = 0.38;
             cell.materialType = 'Viridian Egg Glaze';
             cell.stressLimit = 0.92;
+            cell.origR = 8; cell.origG = 52; cell.origB = 28;
           } else {
             cell.chemSusceptibility = 0.99;
             cell.materialType = 'PR49 Lithol Red Azo';
             cell.stressLimit = 0.96;
+            cell.origR = 195; cell.origG = 30; cell.origB = 40;
           }
           
-          // Organic transitional zone (seam)
           if (Math.abs(yNorm - border1) < 0.045 || Math.abs(yNorm - border2) < 0.045) {
             cell.isRothkoSeam = true;
-            cell.stressLimit = 0.55; 
+            cell.stressLimit = 0.55;
             cell.materialType = 'Hygroscopic Animal Glue';
+            cell.origR = 55; cell.origG = 38; cell.origB = 10;
           }
         }
       }
@@ -1435,12 +1432,12 @@ function configureSubstrateFields() {
       for (let x = 0; x < cols; x++) {
         for (let y = 0; y < rows; y++) {
           let cell = forceGrid[x][y];
-          cell.stressLimit = 0.24; 
+          cell.stressLimit = 0.24;
           cell.chemSusceptibility = 0.1;
           cell.bioSusceptibility = 0.01;
           cell.materialType = 'Commercial Ripolin Alkyd';
+          cell.origR = 236; cell.origG = 234; cell.origB = 228;
           
-          // 4x3 Grid of specimens
           const colsCount = 4;
           const rowsCount = 3;
           const spacingX = cols / (colsCount + 1);
@@ -1453,7 +1450,6 @@ function configureSubstrateFields() {
               let dx = x - cx;
               let dy = y - cy;
               
-              // Symmetrical detailed butterfly shape
               let isBody = (dx === 0 && Math.abs(dy) <= 4);
               let isLeftUpper = (dx < 0 && dx >= -5 && dy < 0 && dy >= -4 && Math.abs(dx) >= Math.abs(dy) * 0.7);
               let isRightUpper = (dx > 0 && dx <= 5 && dy < 0 && dy >= -4 && Math.abs(dx) >= Math.abs(dy) * 0.7);
@@ -1462,9 +1458,10 @@ function configureSubstrateFields() {
               
               if (isBody || isLeftUpper || isRightUpper || isLeftLower || isRightLower) {
                 cell.isHirstSpecimen = true;
-                cell.bioSusceptibility = 0.99; 
+                cell.bioSusceptibility = 0.99;
                 cell.stressLimit = 0.88;
                 cell.materialType = 'Morpho Peleides Chitin';
+                cell.origR = 44; cell.origG = 95; cell.origB = 112;
               }
             }
           }
@@ -1478,29 +1475,26 @@ function configureSubstrateFields() {
           cell.chemSusceptibility = 0.2;
           cell.bioSusceptibility = 0.0;
           cell.materialType = 'Chalk Ground Gesso';
+          cell.origR = 100; cell.origG = 75; cell.origB = 40;
           
           let dx = x - cols / 2;
           let dy = y - rows / 2;
           
-          // Female figure standing in the center
           let isHair = (Math.abs(dx) < 8 && dy < -rows * 0.28 && dy > -rows * 0.42);
           let isHead = (Math.abs(dx) < 6 && dy < -rows * 0.25 && dy > -rows * 0.38);
           let isBody = (Math.abs(dx) < 14 && dy >= -rows * 0.25);
           
-          if (isHair) {
-            cell.materialType = 'Delicate Portrait Glaze'; // dark hair
+          if (isHair || isHead) {
+            cell.materialType = 'Delicate Portrait Glaze';
             cell.chemSusceptibility = 0.3;
             cell.stressLimit = 0.85;
-          } else if (isHead) {
-            cell.materialType = 'Delicate Portrait Glaze'; // skin tone
-            cell.chemSusceptibility = 0.3;
-            cell.stressLimit = 0.85;
+            cell.origR = 185; cell.origG = 140; cell.origB = 25;
           } else if (isBody) {
-            cell.materialType = 'Flowing Silk Gown'; // white dress with patterned silk
+            cell.materialType = 'Flowing Silk Gown';
             cell.chemSusceptibility = 0.4;
             cell.stressLimit = 0.75;
+            cell.origR = 230; cell.origG = 222; cell.origB = 202;
           } else {
-            // Background gold spirals and silver panels
             let spiralNoise = noise(x * 0.15, y * 0.15);
             let goldFreq = (Math.sin(x * 0.25) * Math.cos(y * 0.25) > 0.12) || (spiralNoise > 0.62);
             
@@ -1509,13 +1503,14 @@ function configureSubstrateFields() {
               cell.stressLimit = 0.35;
               cell.chemSusceptibility = 0.1;
               cell.materialType = 'Byzantine Gold Leaf';
+              cell.origR = 218; cell.origG = 165; cell.origB = 32;
             }
-            
             if (cell.isKlimtGold && (x * y) % 17 < 3 && noise(x*0.1, y*0.1) > 0.45) {
               cell.isKlimtSilver = true;
               cell.stressLimit = 0.28;
-              cell.chemSusceptibility = 0.99; 
+              cell.chemSusceptibility = 0.99;
               cell.materialType = 'Genuine Silver Leaf';
+              cell.origR = 192; cell.origG = 192; cell.origB = 192;
             }
           }
         }
@@ -1528,8 +1523,8 @@ function configureSubstrateFields() {
           cell.chemSusceptibility = 0.0;
           cell.bioSusceptibility = 0.0;
           cell.materialType = 'Rigid Masonite Board';
+          cell.origR = 120; cell.origG = 100; cell.origB = 75;
           
-          // Generate realistic chaotic paint filaments using multi-frequency ridge noise
           let nBlack = Math.abs(noise(x * 0.14, y * 0.14) - 0.5);
           let nWhite = Math.abs(noise(x * 0.16 + 50, y * 0.16) - 0.5);
           let nSilver = Math.abs(noise(x * 0.18 + 100, y * 0.18) - 0.5);
@@ -1543,11 +1538,10 @@ function configureSubstrateFields() {
           if (isBlack || isWhite || isSilver || isYellow) {
             cell.isPollockDrip = true;
             cell.stressLimit = 0.3;
-            
-            if (isBlack) cell.materialType = 'Liquid Black Alkyd';
-            else if (isWhite) cell.materialType = 'Titanium White Enamel';
-            else if (isSilver) cell.materialType = 'Liquid Silver Enamel';
-            else cell.materialType = 'Chrome Yellow Drip';
+            if (isBlack) { cell.materialType = 'Liquid Black Alkyd'; cell.origR = 10; cell.origG = 10; cell.origB = 12; }
+            else if (isWhite) { cell.materialType = 'Titanium White Enamel'; cell.origR = 245; cell.origG = 245; cell.origB = 240; }
+            else if (isSilver) { cell.materialType = 'Liquid Silver Enamel'; cell.origR = 180; cell.origG = 180; cell.origB = 182; }
+            else { cell.materialType = 'Chrome Yellow Drip'; cell.origR = 235; cell.origG = 180; cell.origB = 20; }
           }
         }
       }
@@ -1557,34 +1551,98 @@ function configureSubstrateFields() {
           let cell = forceGrid[x][y];
           cell.stressLimit = 0.92;
           cell.bioSusceptibility = 0.0;
+          cell.origR = 20; cell.origG = 20; cell.origB = 22;
           
           let forestNoise = noise(x * 0.06) * 12.0;
           let horizonY = rows * 0.52 + forestNoise;
-          
           let lampX = cols * 0.35;
           let lampY = rows * 0.72;
-          
           let dx = x - lampX;
           let dy = y - lampY;
           let distToLamp = Math.sqrt(dx*dx + dy*dy);
           
           if (y < horizonY) {
             cell.isMagritteSky = true;
-            cell.chemSusceptibility = 0.95; 
+            cell.chemSusceptibility = 0.95;
             cell.materialType = 'Prussian Blue Sky';
+            cell.origR = 40; cell.origG = 115; cell.origB = 210;
           } else {
             cell.isMagritteForest = true;
-            cell.bioSusceptibility = 0.85; 
+            cell.bioSusceptibility = 0.85;
             cell.stressLimit = 0.72;
             cell.materialType = 'Zinc Oxide Oil Base';
+            cell.origR = 8; cell.origG = 20; cell.origB = 14;
             
-            // Streetlamp light bulb and post
             if (distToLamp < 4.0 || (Math.abs(dx) < 1.0 && y >= lampY && y < lampY + 12)) {
               cell.materialType = 'Luminescent Streetlamp Wash';
               cell.chemSusceptibility = 0.05;
               cell.stressLimit = 0.95;
+              cell.origR = 245; cell.origG = 195; cell.origB = 35;
             }
           }
+        }
+      }
+    } else if (activeArtwork === 'supra') {
+      for (let x = 0; x < cols; x++) {
+        for (let y = 0; y < rows; y++) {
+          let cell = forceGrid[x][y];
+          cell.stressLimit = 0.8;
+          cell.chemSusceptibility = 0.6;
+          cell.bioSusceptibility = 0.1;
+          cell.materialType = 'Silicate Ground Gesso';
+          cell.origR = 60; cell.origG = 40; cell.origB = 80;
+          
+          let dx = x - cols / 2;
+          let dy = y - rows / 2;
+          if (Math.abs(dx) < cols * 0.25 && Math.abs(dy) < rows * 0.25) {
+            cell.materialType = 'Volatile Lavender Field';
+            cell.chemSusceptibility = 0.9;
+            cell.stressLimit = 0.5;
+            cell.origR = 128; cell.origG = 100; cell.origB = 162;
+          }
+        }
+      }
+    } else if (activeArtwork === 'thunderDawn') {
+      for (let x = 0; x < cols; x++) {
+        for (let y = 0; y < rows; y++) {
+          let cell = forceGrid[x][y];
+          cell.stressLimit = 0.9;
+          cell.chemSusceptibility = 0.4;
+          cell.bioSusceptibility = 0.05;
+          cell.materialType = 'Charcoal Bokashi Gradient';
+          cell.origR = 50; cell.origG = 50; cell.origB = 55;
+          
+          let yNorm = y / rows;
+          if (yNorm < 0.4) {
+            cell.materialType = 'Mineral Yellow Horizon';
+            cell.stressLimit = 0.7;
+            cell.chemSusceptibility = 0.55;
+            cell.origR = 225; cell.origG = 175; cell.origB = 35;
+          } else if (yNorm >= 0.6) {
+            cell.materialType = 'Volatile Vermilion Lacquer';
+            cell.stressLimit = 0.45;
+            cell.chemSusceptibility = 0.95;
+            cell.origR = 220; cell.origG = 50; cell.origB = 25;
+          }
+        }
+      }
+    }
+  }
+
+  // Compute 2D spatial contours/gradients (Sobel central difference) dynamically for all cases!
+  if (cols >= 3 && rows >= 3) {
+    for (let x = 1; x < cols - 1; x++) {
+      for (let y = 1; y < rows - 1; y++) {
+        let cell = forceGrid[x][y];
+        if (cell) {
+          let valL = ((forceGrid[x-1][y].origR || 0) + (forceGrid[x-1][y].origG || 0) + (forceGrid[x-1][y].origB || 0)) / 3.0;
+          let valR = ((forceGrid[x+1][y].origR || 0) + (forceGrid[x+1][y].origG || 0) + (forceGrid[x+1][y].origB || 0)) / 3.0;
+          let valU = ((forceGrid[x][y-1].origR || 0) + (forceGrid[x][y-1].origG || 0) + (forceGrid[x][y-1].origB || 0)) / 3.0;
+          let valD = ((forceGrid[x][y+1].origR || 0) + (forceGrid[x][y+1].origG || 0) + (forceGrid[x][y+1].origB || 0)) / 3.0;
+          
+          let dx = valR - valL;
+          let dy = valD - valU;
+          cell.edgeGradient = Math.sqrt(dx*dx + dy*dy);
         }
       }
     }
@@ -2333,7 +2391,7 @@ function renderRadarGrid() {
           let stretched = map(baseIntensity, 12, 235, 0, 255);
           
           // High-fidelity edge gradient detection for Rothko boundary shimmer
-          let edgeGlow = map(cell.edgeGradient, 8, 85, 0.0, 1.0);
+          let edgeGlow = map(cell.edgeGradient || 0.0, 8, 85, 0.0, 1.0);
           edgeGlow = constrain(edgeGlow, 0.0, 1.0);
           
           // Living atmospheric breath to make borders and color fields "balloon" organically
@@ -3555,7 +3613,9 @@ function deepCopyGrid(src) {
         stressLimit: c.stressLimit,
         chemSusceptibility: c.chemSusceptibility,
         bioSusceptibility: c.bioSusceptibility,
-        tackiness: c.tackiness
+        tackiness: c.tackiness,
+        edgeGradient: c.edgeGradient !== undefined ? c.edgeGradient : 0.0,
+        eatingFlicker: c.eatingFlicker !== undefined ? c.eatingFlicker : 0.0
       };
     }
   }

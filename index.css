@@ -154,6 +154,7 @@ main {
   width: 100%;
   flex: 1;
   min-height: 0;
+  max-height: 56vh;
 }
 
 /* Dynamic Interactive Art Frames */
@@ -240,7 +241,7 @@ main {
   background-color: #000;
   display: block;
   max-width: 100%;
-  max-height: 52vh;
+  max-height: 100%;
   width: auto !important;
   height: auto !important;
   object-fit: contain;
@@ -256,10 +257,12 @@ main {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  max-width: 850px;
   gap: 0.75rem;
   z-index: 5;
   margin-bottom: 0.25rem;
   box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
 .overlay-btn {
