@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entropic Radar — Kinetic Fine Art Vitrine</title>
+  <meta name="description" content="An interactive generative light vitrine mapping the chemical, mechanical, and biological decay forces in multimillion-dollar contemporary art commodities.">
+  <link rel="stylesheet" href="index.css">
+  <!-- Load p5.min.js from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>Entropic Vitrine</h1>
+      <span class="brand-badge" id="sim-badge">Radar Active</span>
+    </div>
+    <div class="meta-info">
+      <div class="meta-item" id="meta-lot"><span>LOT:</span> #82-1991</div>
+      <div class="meta-item" id="meta-status"><span>STATE:</span> MONITORING FORCES</div>
+      <div class="meta-item" id="meta-fps"><span>FPS:</span> --</div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Viewport Panel: Unified Generative Kinetic Vitrine Display -->
+    <div class="viewport-pane">
+      <!-- HUD displaying active situation and integrity -->
+      <div class="viewport-overlay" style="width: calc(100% - 4rem); display: flex; justify-content: space-between; align-items: center;">
+        <span class="overlay-btn active" id="btn-phase-indicator" style="cursor: default; border-color: rgba(255, 255, 255, 0.15);">
+          Situation: Geneva Freeport
+        </span>
+        <span class="overlay-btn" id="btn-timeline-indicator" style="cursor: default; font-family: var(--font-mono); color: var(--accent-orange); border-color: rgba(255, 127, 80, 0.3); font-weight: 500;">
+          Timeline: 0y, 0m (Vault Age)
+        </span>
+        <span class="overlay-btn" id="btn-integrity-indicator" style="cursor: default; font-family: var(--font-mono); color: var(--accent-green); border-color: rgba(46, 204, 113, 0.3);">
+          Integrity: 100.0%
+        </span>
+      </div>
+
+      <!-- Scientific Force Layer Selectors -->
+      <div class="layer-selector-bar">
+        <button class="layer-tab active" id="btn-visible-mode" title="Unified Vitrine View (All Decay Forces Simultaneously mapped with Dominant-Force priority)">
+          <span class="tab-indicator" style="background-color: var(--accent-gold);"></span>
+          Unified Vitrine
+        </button>
+        <button class="layer-tab" id="btn-stress-mode" title="Mechanical corner strain, shear stress, and active crack propagation networks">
+          <span class="tab-indicator" style="background-color: var(--accent-red);"></span>
+          Mechanical Strain
+        </button>
+        <button class="layer-tab" id="btn-uv-mode" title="Ultraviolet photo-fading sweeps and photolytic pigment cleavage grids">
+          <span class="tab-indicator" style="background-color: var(--accent-purple);"></span>
+          Photochemical Bleach
+        </button>
+        <button class="layer-tab" id="btn-sapon-mode" title="Crystalline lead soap nodes and saponified lipid migration fields">
+          <span class="tab-indicator" style="background-color: var(--accent-gold);"></span>
+          Lead Soaps
+        </button>
+        <button class="layer-tab" id="btn-bio-mode" title="Butterfly specimen chitin collapse and green mold creep networks">
+          <span class="tab-indicator" style="background-color: var(--accent-green);"></span>
+          Specimen Rot
+        </button>
+        <button class="layer-tab" id="btn-moisture-mode" title="Ambient relative humidity absorption and water saturation front diffusion">
+          <span class="tab-indicator" style="background-color: var(--accent-blue);"></span>
+          Moisture
+        </button>
+      </div>
+      
+      <!-- Forensic Snapshot Timeline Gallery -->
+      <div class="forensic-timeline-container">
+        <div class="forensic-timeline-title">Entropic Milestones & Forensic Snapshots</div>
+        <div class="forensic-timeline-scroll" id="timeline-snapshots">
+          <!-- Dynamically populated via app.js -->
+        </div>
+      </div>
+
+      <div class="artwork-display-container">
+        <!-- Diffuser shadowbox frame -->
+        <div class="art-frame-wrapper frame-basquiat" id="art-frame">
+          <div id="canvas-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Pane: Data and Simulation Settings -->
+    <div class="controls-pane">
+      
+      <!-- Auction Lots & Real-Time Financial Value Devaluation -->
+      <div class="valuation-banner">
+        <div class="valuation-label">
+          <span id="current-lot-lbl">Sotheby's Lot 14A</span>
+          <span class="lot-number" id="current-financial-lbl">Speculative Asset</span>
+        </div>
+        <div class="valuation-amount" id="valuation-ticker">
+          $110,500,000
+          <span class="devaluation-percentage" id="devaluation-pct">-0.00%</span>
+        </div>
+      </div>
+
+      <!-- Lot Picker Section -->
+      <div class="section-container">
+        <h3 class="section-title">Masterpiece Substrates</h3>
+        <div class="cards-container">
+          <!-- Card 1: Basquiat -->
+          <div class="art-card card-basquiat active" id="card-basquiat" data-artwork="basquiat">
+            <div class="card-header">
+              <span class="card-title">Untitled (1982)</span>
+              <span class="card-price">$110.5M</span>
+            </div>
+            <div class="card-artist">Jean-Michel Basquiat</div>
+            <div class="card-desc">
+              Mixed media grid. Exposed wooden supports induce massive boundary shear strains (Magenta). Tacky oilstick networks capture dense environmental dust aggregates (Amber).
+            </div>
+          </div>
+          <!-- Card 2: Rothko -->
+          <div class="art-card card-rothko" id="card-rothko" data-artwork="rothko">
+            <div class="card-header">
+              <span class="card-title">No. 6 (Violet, Green, Red)</span>
+              <span class="card-price">$186M</span>
+            </div>
+            <div class="card-artist">Mark Rothko</div>
+            <div class="card-desc">
+              Thin layered washes. Intense, rolling wavefronts of solar UV photolysis (Deep Violet) trigger photochemical decomposition and golden lipid saponification clusters (Gold).
+            </div>
+          </div>
+          <!-- Card 3: Hirst -->
+          <div class="art-card card-hirst" id="card-hirst" data-artwork="hirst">
+            <div class="card-header">
+              <span class="card-title">In and Out of Love (1991)</span>
+              <span class="card-price">$12.2M</span>
+            </div>
+            <div class="card-artist">Damien Hirst</div>
+            <div class="card-desc">
+              Organic specimens. Grid coordinates act as localized hotspots for biological chitin collapse and moisture-induced fungal creep (Teal) on brittle household gloss.
+            </div>
+          </div>
+          <!-- Card 4: Klimt -->
+          <div class="art-card card-klimt" id="card-klimt" data-artwork="klimt">
+            <div class="card-header">
+              <span class="card-title">Portrait of Elisabeth Lederer (1916)</span>
+              <span class="card-price">$236.4M</span>
+            </div>
+            <div class="card-artist">Gustav Klimt</div>
+            <div class="card-desc">
+              Thick gesso ground and genuine gold/silver foil. Moisture drives silver sulfidation (blackened veins) and gold delamination shear stress (Magenta).
+            </div>
+          </div>
+          <!-- Card 5: Pollock -->
+          <div class="art-card card-pollock" id="card-pollock" data-artwork="pollock">
+            <div class="card-header">
+              <span class="card-title">Number 7A, 1948</span>
+              <span class="card-price">$181.2M</span>
+            </div>
+            <div class="card-artist">Jackson Pollock</div>
+            <div class="card-desc">
+              Poured industrial alkyd enamel paint loops on unprimed Masonite. Aggressive cross-linking resins trigger rapid alligator craquelure fractures (Magenta).
+            </div>
+          </div>
+          <!-- Card 6: Magritte -->
+          <div class="art-card card-magritte" id="card-magritte" data-artwork="magritte">
+            <div class="card-header">
+              <span class="card-title">L'empire des lumières (1954)</span>
+              <span class="card-price">$121.2M</span>
+            </div>
+            <div class="card-artist">René Magritte</div>
+            <div class="card-desc">
+              Thin oil washes over zinc ground. UV exposure cleaves Prussian Blue sky complexes (Cyan fading voids). Reactive zinc oxides migrate to form microscopic hazes (Amber).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Speculative Life Cycles Selector Section -->
+      <div class="section-container">
+        <h3 class="section-title">Environmental Situations</h3>
+        <div class="cards-container" id="lifecycle-container">
+          <!-- Situation 1: The Geneva Freeport -->
+          <div class="art-card active" id="cycle-freeport" data-cycle="freeport" style="padding: 0.75rem;">
+            <div class="card-header" style="margin-bottom: 2px;">
+              <span class="card-title" style="font-size: 0.85rem;">I. The Geneva Freeport</span>
+              <span class="card-price" style="font-size: 0.75rem; color: #32ff7e;">Climate Stabilized</span>
+            </div>
+            <div class="card-desc" style="font-size: 0.7rem;">
+              Locked in total darkness in an ultra-secure vault (50% RH, 20°C). Deep, silent molecular soap migration (Amber) slowly nucleates over centuries.<br>
+              <span style="color: #a0a5b5; font-family: var(--font-mono); font-size: 0.65rem; display: block; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 4px;">Scale: 1s ≈ 5 years (Vault Age)</span>
+            </div>
+          </div>
+          <!-- Situation 2: The Oligarch's Penthouse -->
+          <div class="art-card" id="cycle-penthouse" data-cycle="penthouse" style="padding: 0.75rem;">
+            <div class="card-header" style="margin-bottom: 2px;">
+              <span class="card-title" style="font-size: 0.85rem;">II. The Collector's Penthouse</span>
+              <span class="card-price" style="font-size: 0.75rem; color: #ff7f50;">High Exposure</span>
+            </div>
+            <div class="card-desc" style="font-size: 0.7rem;">
+              Exposed to floor-to-ceiling glass windows. Shifting solar UV cycles and sharp relative humidity variations trigger rapid, active multi-layered decay.<br>
+              <span style="color: var(--accent-orange); font-family: var(--font-mono); font-size: 0.65rem; display: block; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 4px;">Scale: 1s ≈ 2 months (Exposure)</span>
+            </div>
+          </div>
+          <!-- Situation 3: The Public Museum Vitrine -->
+          <div class="art-card" id="cycle-museum" data-cycle="museum" style="padding: 0.75rem;">
+            <div class="card-header" style="margin-bottom: 2px;">
+              <span class="card-title" style="font-size: 0.85rem;">III. The Museum Vitrine</span>
+              <span class="card-price" style="font-size: 0.75rem; color: #1e90ff;">Vibration Fatigue</span>
+            </div>
+            <div class="card-desc" style="font-size: 0.7rem;">
+              Enclosed in an inert gas climate. Pigments stay perfectly saturated, but low-frequency mechanical vibrations from tourist footsteps slowly propagate hairline cracks.<br>
+              <span style="color: var(--accent-blue); font-family: var(--font-mono); font-size: 0.65rem; display: block; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 4px;">Scale: 1s ≈ 1.2 years (Vitrine Age)</span>
+            </div>
+          </div>
+          <!-- Situation 4: Transit Catastrophe -->
+          <div class="art-card" id="cycle-catastrophe" data-cycle="catastrophe" style="padding: 0.75rem;">
+            <div class="card-header" style="margin-bottom: 2px;">
+              <span class="card-title" style="font-size: 0.85rem;">IV. Transit Catastrophe</span>
+              <span class="card-price" style="font-size: 0.75rem; color: #ff3838;">Climate Failure</span>
+            </div>
+            <div class="card-desc" style="font-size: 0.7rem;">
+              A cargo-hold climate system failure. Searing heat (42°C) and water leak saturations trigger explosive crack lines and rapid green specimen rot.<br>
+              <span style="color: var(--accent-red); font-family: var(--font-mono); font-size: 0.65rem; display: block; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 4px;">Scale: 1s ≈ 10 hours (Transit Leak)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scientific Diagnostics Section -->
+      <div class="section-container">
+        <h3 class="section-title">Force Diagnostics</h3>
+        <div class="diagnostics-panel">
+          
+          <!-- Mechanical Decay Progress -->
+          <div class="diagnostic-meter">
+            <div class="meter-header">
+              <span>Mechanical Strain Rate (Magenta)</span>
+              <span id="txt-mechanical">0.0%</span>
+            </div>
+            <div class="meter-bar-container">
+              <div class="meter-fill fill-mechanical" id="bar-mechanical"></div>
+            </div>
+          </div>
+
+          <!-- Chemical Decay Progress -->
+          <div class="diagnostic-meter">
+            <div class="meter-header">
+              <span>Photochemical Bleach (Violet/Cyan)</span>
+              <span id="txt-chemical">0.0%</span>
+            </div>
+            <div class="meter-bar-container">
+              <div class="meter-fill fill-chemical" id="bar-chemical"></div>
+            </div>
+          </div>
+
+          <!-- Biological Decay Progress -->
+          <div class="diagnostic-meter">
+            <div class="meter-header">
+              <span>Biological Specimen Rot (Teal/Green)</span>
+              <span id="txt-biological">0.0%</span>
+            </div>
+            <div class="meter-bar-container">
+              <div class="meter-fill fill-biological" id="bar-biological"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Action Panel Section -->
+      <div class="section-container">
+        <h3 class="section-title">Vitrine Controls</h3>
+        <div class="sim-controls">
+          <button class="sim-btn" id="btn-toggle-time" title="Toggle calculation speed">
+            Accelerate x100
+          </button>
+          <button class="sim-btn btn-danger" id="btn-reset" title="Acquire pristine duplicate and reset decay calculations">
+            Restore Asset
+          </button>
+        </div>
+
+        <div class="science-notes-box">
+          <h4 id="notes-title">Basquiat Substrate Analysis</h4>
+          <p id="notes-body">
+            Exposed wooden stretchers and raw unprimed canvas absorb atmospheric moisture rapidly, building up massive diagonal corner shear tensions (Magenta).Permanently sticky wax-oil stick grids attract microscopic dust particles that aggregate in high-density branching channels (Amber).
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
