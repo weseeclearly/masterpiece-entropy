@@ -18,13 +18,13 @@ let btnPhaseIndicator, btnIntegrityIndicator, btnTimelineIndicator;
 
 // Curated high-contrast glowing aesthetic force palette (guarantees zero color washout)
 const colors = {
-  stress: [255, 30, 95],       // Magenta (Mechanical Strain & Craquelure)
-  crackTip: [255, 110, 190],    // Neon Pink (Active Propagation Energy)
-  uvFlux: [115, 30, 255],      // Ultraviolet Indigo (Direct Photochemical Wavefront)
-  bleach: [0, 195, 255],       // Cyan / Ice Blue (Photolytic Bleaching Void)
-  sapon: [255, 175, 12],       // Amber Gold (Crystalline Lead Soap Migration)
-  biological: [15, 240, 135],  // Vivid Green-Teal (Fungal Mold Creep & Specimen Rot)
-  moisture: [30, 75, 255],     // Cobalt Blue (Humidity Saturation Front)
+  stress: [115, 30, 255],       // Royal Purple (Mechanical Strain & Craquelure - abstracted)
+  crackTip: [0, 255, 200],      // Neon Cyan (Active Propagation Energy)
+  uvFlux: [255, 175, 12],       // Amber Gold (Direct Photochemical Wavefront)
+  bleach: [255, 30, 95],        // Laser Pink (Photolytic Bleaching Void)
+  sapon: [15, 240, 135],        // Vivid Green-Teal (Crystalline Lead Soap Migration)
+  biological: [240, 240, 240],   // Warm White (Fungal Mold Creep & Specimen Rot)
+  moisture: [230, 110, 20],     // Volcanic Orange (Humidity Saturation Front - abstracted)
   
   // Synthetic Resurrection Accents
   syntheticCyan: [0, 255, 200],  // Neon Cyan (Paraloid B-72 Restoration Polymers)
@@ -392,12 +392,12 @@ const themeColors = {
       [230, 255, 240],  // Fluorophore White
       [255, 255, 255]   // Pure White Spark
     ],
-    moisture: [0, 240, 255],
-    uvFlux: [115, 30, 255],
-    bleach: [0, 255, 127],
-    sapon: [255, 110, 0],
-    biological: [0, 255, 0],
-    stress: [255, 0, 127]
+    moisture: [255, 110, 0],   // Volcanic Orange (Abstracted)
+    uvFlux: [0, 255, 127],     // Acid Lime (Abstracted)
+    bleach: [255, 0, 127],     // Laser Pink (Abstracted)
+    sapon: [0, 240, 255],      // Electric Cyan (Abstracted)
+    biological: [115, 30, 255], // Royal Purple (Abstracted)
+    stress: [230, 255, 240]    // Fluorophore White (Abstracted)
   },
   naturalism: {
     ramp: [
@@ -410,48 +410,12 @@ const themeColors = {
       [230, 222, 202],  // Alabaster Cream
       [250, 248, 242]   // Highlight White
     ],
-    moisture: [44, 95, 112],
-    uvFlux: [235, 175, 55],
-    bleach: [230, 222, 202],
-    sapon: [160, 82, 45],
-    biological: [107, 112, 92],
-    stress: [166, 75, 45]
-  },
-  wadaSoft: {
-    ramp: [
-      [18, 22, 48],     // Deep Cobalt Base
-      [128, 109, 110],  // Heather Quartz
-      [100, 115, 90],   // Sage Lichen
-      [20, 52, 240],    // Cobalt Blue
-      [254, 80, 0],     // Vermilion Red
-      [255, 186, 0],    // Mineral Yellow
-      [231, 242, 248],  // Calcite Silver
-      [253, 253, 251]   // Pure Calcite White
-    ],
-    moisture: [20, 52, 240],
-    uvFlux: [128, 109, 110],
-    bleach: [231, 242, 248],
-    sapon: [255, 186, 0],
-    biological: [100, 115, 90],
-    stress: [254, 80, 0]
-  },
-  wadaSharp: {
-    ramp: [
-      [18, 12, 22],     // Obsidian Charcoal
-      [26, 20, 98],     // Midnight Indigo
-      [138, 0, 21],     // Alizarin Crimson
-      [116, 16, 160],   // Imperial Purple
-      [255, 151, 0],    // Saffron Gold
-      [245, 190, 80],   // Yellow Amber
-      [253, 245, 230],  // Saffron Mist
-      [255, 255, 255]   // Highlight Gold Spark
-    ],
-    moisture: [26, 20, 98],
-    uvFlux: [116, 16, 160],
-    bleach: [255, 151, 0],
-    sapon: [255, 151, 0],
-    biological: [38, 14, 21],
-    stress: [138, 0, 21]
+    moisture: [166, 75, 45],   // Rust Red (Abstracted)
+    uvFlux: [230, 222, 202],   // Alabaster Cream (Abstracted)
+    bleach: [44, 95, 112],     // Sea-Pine Blue (Abstracted)
+    sapon: [107, 112, 92],     // Sage Green (Abstracted)
+    biological: [235, 175, 55], // Golden Sunlight (Abstracted)
+    stress: [160, 82, 45]      // Burnt Sienna (Abstracted)
   },
   rothkoTension: {
     ramp: [
@@ -464,120 +428,12 @@ const themeColors = {
       [255, 140, 0],    // Sub-Surface Bleed (Vibrating Amber)
       [230, 20, 80]     // Tension Break (Crimson Pink)
     ],
-    moisture: [20, 110, 240],
-    uvFlux: [240, 90, 20],
-    bleach: [245, 230, 180],
-    sapon: [220, 160, 40],
-    biological: [80, 150, 120],
-    stress: [230, 20, 80]
-  },
-  fukinsei: {
-    ramp: [
-      [30, 40, 45],     // Void Shadow
-      [45, 55, 60],     // The Void
-      [115, 130, 120],  // Cool Ground
-      [95, 105, 90],    // Liminal Lichen Tone
-      [185, 150, 110],  // Warm Ground
-      [235, 230, 220],  // Counter-Void (Alabaster)
-      [210, 45, 45],    // The Anchor (Cinnabar)
-      [255, 215, 80]    // Kinetic Spark (Sunlit Gold)
-    ],
-    moisture: [45, 55, 60],
-    uvFlux: [185, 150, 110],
-    bleach: [235, 230, 220],
-    sapon: [255, 215, 80],
-    biological: [95, 105, 90],
-    stress: [210, 45, 45]
-  },
-  kasaneNioi: {
-    ramp: [
-      [48, 25, 43],     // Deepest Plum-Purple (Koki)
-      [84, 94, 59],     // Dark Moss Green (Matsushige)
-      [102, 38, 77],    // Mid Plum (Hagi)
-      [138, 158, 93],   // Spring Leaf Green
-      [194, 137, 54],   // Rich Ochre
-      [166, 25, 75],    // Saturated Crimson Plum
-      [228, 237, 233],  // Calcite Silver
-      [253, 250, 245]   // Ethereal Blossom White
-    ],
-    moisture: [48, 25, 43],
-    uvFlux: [194, 137, 54],
-    bleach: [253, 250, 245],
-    sapon: [228, 237, 233],
-    biological: [138, 158, 93],
-    stress: [166, 25, 75]
-  },
-  atmosphericDecay: {
-    ramp: [
-      [24, 16, 48],     // Deep Rayleigh Void
-      [41, 24, 18],     // Zero-Decay Anchor
-      [104, 88, 122],   // Distance Tone (Mountain Haze)
-      [86, 115, 83],    // Lichen Green
-      [122, 142, 179],  // Mist Layer
-      [184, 115, 51],   // Earth Warmth
-      [194, 85, 58],    // Terracotta Clay (Warm Step)
-      [230, 234, 238]   // Pale Atmosphere (Ethereal Sky)
-    ],
-    moisture: [24, 16, 48],
-    uvFlux: [104, 88, 122],
-    bleach: [230, 234, 238],
-    sapon: [184, 115, 51],
-    biological: [86, 115, 83],
-    stress: [194, 85, 58]
-  },
-  thangkaFive: {
-    ramp: [
-      [22, 22, 28],     // Ink Void
-      [38, 64, 115],    // Insulating Bead
-      [18, 48, 138],    // Lapis Blue (Space)
-      [24, 122, 85],    // Malachite Green (Water)
-      [194, 38, 38],    // Cinnabar Red (Fire)
-      [235, 170, 40],   // Orpiment Yellow (Earth)
-      [255, 205, 48],   // Pure Gold Thread
-      [245, 242, 235]   // Chalk White (Air)
-    ],
-    moisture: [18, 48, 138],
-    uvFlux: [235, 170, 40],
-    bleach: [245, 242, 235],
-    sapon: [255, 205, 48],
-    biological: [24, 122, 85],
-    stress: [194, 38, 38]
-  },
-  silkBrocade: {
-    ramp: [
-      [95, 75, 98],     // Weft Interlock (optical cross)
-      [184, 25, 38],    // Brocade Ground (Crimson)
-      [25, 122, 150],   // Motif Core (Teal)
-      [85, 166, 184],   // Halo Step 1
-      [145, 202, 215],  // Halo Step 2
-      [242, 194, 58],   // Gold Buffer Thread
-      [210, 235, 240],  // Halo Step 3
-      [253, 252, 248]   // White Hook Edge
-    ],
-    moisture: [25, 122, 150],
-    uvFlux: [145, 202, 215],
-    bleach: [253, 252, 248],
-    sapon: [242, 194, 58],
-    biological: [85, 166, 184],
-    stress: [184, 25, 38]
-  },
-  dualKasane: {
-    ramp: [
-      [38, 12, 30],     // Koki A1 (Deep Plum)
-      [48, 22, 12],     // Koki B1 (Deep Burnt Amber)
-      [94, 38, 77],     // Mid Plum A2
-      [115, 64, 32],    // Mid Amber B2
-      [158, 102, 138],  // Soft Lilac A3
-      [184, 122, 64],   // Soft Ochre B3
-      [215, 179, 202],  // Pale Lavender A4 (Usuyo)
-      [242, 220, 175]   // Ethereal Gold B4 (Usuyo)
-    ],
-    moisture: [38, 12, 30],
-    uvFlux: [184, 122, 64],
-    bleach: [242, 220, 175],
-    sapon: [115, 64, 32],
-    biological: [158, 102, 138],
-    stress: [94, 38, 77]
+    moisture: [220, 160, 40],   // Gold glaze (Abstracted)
+    uvFlux: [230, 20, 80],      // Tension break (Abstracted)
+    bleach: [20, 110, 240],     // Cool field (Abstracted)
+    sapon: [80, 150, 120],     // Secondary cool (Abstracted)
+    biological: [240, 90, 20],  // Warm field (Abstracted)
+    stress: [245, 230, 180]     // Pale sand (Abstracted)
   },
   morandiCluster: {
     ramp: [
@@ -590,30 +446,30 @@ const themeColors = {
       [218, 220, 212],  // Pale Wash (Tuymans Bleach)
       [245, 248, 240]   // Light Beam Puncture
     ],
-    moisture: [82, 85, 84],
-    uvFlux: [166, 115, 102],
-    bleach: [245, 248, 240],
-    sapon: [138, 132, 122],
-    biological: [104, 108, 104],
-    stress: [38, 38, 38]
+    moisture: [166, 115, 102],  // Cinnabar Shift (Abstracted)
+    uvFlux: [82, 85, 84],       // Slate dust 1 (Abstracted)
+    bleach: [115, 108, 118],    // Lavender echo (Abstracted)
+    sapon: [245, 248, 240],     // Light beam (Abstracted)
+    biological: [38, 38, 38],   // Shadow (Abstracted)
+    stress: [104, 108, 104]     // Sage dust 2 (Abstracted)
   },
-  saturatedField: {
+  thangkaFive: {
     ramp: [
-      [12, 12, 14],     // Black Lacquer
-      [22, 28, 64],     // Fauvist Deep Indigo
-      [28, 115, 215],   // Tetradic Cobalt
-      [128, 128, 134],  // Grey Pop
-      [215, 24, 28],    // Chinese Lacquer Red
-      [235, 64, 24],    // Vermillion Variant
-      [245, 166, 22],   // Saffron Gold Pop
-      [253, 253, 250]   // Pure White Matisse Cut-out
+      [22, 22, 28],     // Ink Void
+      [38, 64, 115],    // Insulating Bead
+      [18, 48, 138],    // Lapis Blue (Space)
+      [24, 122, 85],    // Malachite Green (Water)
+      [194, 38, 38],    // Cinnabar Red (Fire)
+      [235, 170, 40],   // Orpiment Yellow (Earth)
+      [255, 205, 48],   // Pure Gold Thread
+      [245, 242, 235]   // Chalk White (Air)
     ],
-    moisture: [28, 115, 215],
-    uvFlux: [245, 166, 22],
-    bleach: [253, 253, 250],
-    sapon: [128, 128, 134],
-    biological: [22, 28, 64],
-    stress: [215, 24, 28]
+    moisture: [194, 38, 38],    // Cinnabar red (Abstracted)
+    uvFlux: [18, 48, 138],      // Lapis blue (Abstracted)
+    bleach: [235, 170, 40],     // Orpiment yellow (Abstracted)
+    sapon: [24, 122, 85],       // Malachite green (Abstracted)
+    biological: [245, 242, 235], // Chalk white (Abstracted)
+    stress: [255, 205, 48]      // Pure gold (Abstracted)
   },
   sacredVestment: {
     ramp: [
@@ -626,30 +482,12 @@ const themeColors = {
       [242, 228, 115],  // Gold Refraction (Candlelight flare)
       [253, 250, 240]   // Angelic Halo White
     ],
-    moisture: [77, 25, 94],
-    uvFlux: [242, 228, 115],
-    bleach: [253, 250, 240],
-    sapon: [228, 184, 58],
-    biological: [184, 194, 202],
-    stress: [102, 14, 38]
-  },
-  analogousDrift: {
-    ramp: [
-      [20, 30, 85],     // Deep Sea Shadow
-      [77, 72, 115],    // Shadow Lavender
-      [70, 110, 145],   // Dusty Cerulean (Moisture)
-      [215, 145, 140],  // Rose Drift (Stress)
-      [205, 175, 138],  // Warm Sand (Biological)
-      [230, 160, 110],  // Peach Glaze (UV Flux)
-      [240, 210, 150],  // Golden Sunlight (Saponification)
-      [250, 245, 238]   // Luminous Foam White (Bleach)
-    ],
-    moisture: [70, 110, 145],
-    uvFlux: [230, 160, 110],
-    bleach: [250, 245, 238],
-    sapon: [240, 210, 150],
-    biological: [205, 175, 138],
-    stress: [215, 145, 140]
+    moisture: [228, 184, 58],   // Gold Thread (Abstracted)
+    uvFlux: [102, 14, 38],      // Vestment Crimson (Abstracted)
+    bleach: [77, 25, 94],       // Vestment Light (Abstracted)
+    sapon: [184, 194, 202],     // Silver Thread (Abstracted)
+    biological: [242, 228, 115], // Gold Refraction (Abstracted)
+    stress: [253, 250, 240]     // Angelic Halo White (Abstracted)
   }
 };
 
@@ -886,37 +724,37 @@ function updateLegendColors() {
   const currentColors = themeColors[activeTheme] || themeColors.xray;
   
   if (dStress) {
-    let r = Math.round(lerp(255, currentColors.stress[0], spectralStainVal));
-    let g = Math.round(lerp(56, currentColors.stress[1], spectralStainVal));
-    let b = Math.round(lerp(56, currentColors.stress[2], spectralStainVal));
+    let r = Math.round(lerp(colors.stress[0], currentColors.stress[0], spectralStainVal));
+    let g = Math.round(lerp(colors.stress[1], currentColors.stress[1], spectralStainVal));
+    let b = Math.round(lerp(colors.stress[2], currentColors.stress[2], spectralStainVal));
     dStress.style.background = `rgb(${r}, ${g}, ${b})`;
     dStress.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dMoisture) {
-    let r = Math.round(lerp(30, currentColors.moisture[0], spectralStainVal));
-    let g = Math.round(lerp(144, currentColors.moisture[1], spectralStainVal));
-    let b = Math.round(lerp(255, currentColors.moisture[2], spectralStainVal));
+    let r = Math.round(lerp(colors.moisture[0], currentColors.moisture[0], spectralStainVal));
+    let g = Math.round(lerp(colors.moisture[1], currentColors.moisture[1], spectralStainVal));
+    let b = Math.round(lerp(colors.moisture[2], currentColors.moisture[2], spectralStainVal));
     dMoisture.style.background = `rgb(${r}, ${g}, ${b})`;
     dMoisture.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dBleach) {
-    let r = Math.round(lerp(240, currentColors.bleach[0], spectralStainVal));
-    let g = Math.round(lerp(240, currentColors.bleach[1], spectralStainVal));
-    let b = Math.round(lerp(240, currentColors.bleach[2], spectralStainVal));
+    let r = Math.round(lerp(colors.bleach[0], currentColors.bleach[0], spectralStainVal));
+    let g = Math.round(lerp(colors.bleach[1], currentColors.bleach[1], spectralStainVal));
+    let b = Math.round(lerp(colors.bleach[2], currentColors.bleach[2], spectralStainVal));
     dBleach.style.background = `rgb(${r}, ${g}, ${b})`;
     dBleach.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dSapon) {
-    let r = Math.round(lerp(212, currentColors.sapon[0], spectralStainVal));
-    let g = Math.round(lerp(175, currentColors.sapon[1], spectralStainVal));
-    let b = Math.round(lerp(55, currentColors.sapon[2], spectralStainVal));
+    let r = Math.round(lerp(colors.sapon[0], currentColors.sapon[0], spectralStainVal));
+    let g = Math.round(lerp(colors.sapon[1], currentColors.sapon[1], spectralStainVal));
+    let b = Math.round(lerp(colors.sapon[2], currentColors.sapon[2], spectralStainVal));
     dSapon.style.background = `rgb(${r}, ${g}, ${b})`;
     dSapon.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }
   if (dBio) {
-    let r = Math.round(lerp(46, currentColors.biological[0], spectralStainVal));
-    let g = Math.round(lerp(204, currentColors.biological[1], spectralStainVal));
-    let b = Math.round(lerp(113, currentColors.biological[2], spectralStainVal));
+    let r = Math.round(lerp(colors.biological[0], currentColors.biological[0], spectralStainVal));
+    let g = Math.round(lerp(colors.biological[1], currentColors.biological[1], spectralStainVal));
+    let b = Math.round(lerp(colors.biological[2], currentColors.biological[2], spectralStainVal));
     dBio.style.background = `rgb(${r}, ${g}, ${b})`;
     dBio.style.boxShadow = `0 0 6px rgb(${r}, ${g}, ${b})`;
   }

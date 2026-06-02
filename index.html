@@ -88,23 +88,23 @@
           <div style="font-size: 0.65rem; color: var(--text-primary); font-weight: 600; font-family: var(--font-mono); letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 4px;">ENTROPIC COLORMAP LEGEND</div>
           <div id="colormap-legend" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-family: var(--font-mono); font-size: 0.6rem;">
             <div style="display: flex; align-items: center; gap: 6px;">
-              <span id="legend-stress" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(255, 56, 56); box-shadow: 0 0 6px rgb(255, 56, 56); transition: var(--transition-smooth);"></span>
+              <span id="legend-stress" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(138, 43, 226); box-shadow: 0 0 6px rgb(138, 43, 226); transition: var(--transition-smooth);"></span>
               <span style="color: var(--text-secondary);">Stress / Cracks</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <span id="legend-moisture" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(30, 144, 255); box-shadow: 0 0 6px rgb(30, 144, 255); transition: var(--transition-smooth);"></span>
+              <span id="legend-moisture" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(230, 110, 20); box-shadow: 0 0 6px rgb(230, 110, 20); transition: var(--transition-smooth);"></span>
               <span style="color: var(--text-secondary);">Moisture Tide</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <span id="legend-bleach" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(240, 240, 240); box-shadow: 0 0 6px rgb(240, 240, 240); transition: var(--transition-smooth);"></span>
+              <span id="legend-bleach" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(15, 240, 135); box-shadow: 0 0 6px rgb(15, 240, 135); transition: var(--transition-smooth);"></span>
               <span style="color: var(--text-secondary);">UV Bleaching</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <span id="legend-sapon" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(212, 175, 55); box-shadow: 0 0 6px rgb(212, 175, 55); transition: var(--transition-smooth);"></span>
+              <span id="legend-sapon" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(100, 180, 120); box-shadow: 0 0 6px rgb(100, 180, 120); transition: var(--transition-smooth);"></span>
               <span style="color: var(--text-secondary);">Lead Soaps</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <span id="legend-biological" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(46, 204, 113); box-shadow: 0 0 6px rgb(46, 204, 113); transition: var(--transition-smooth);"></span>
+              <span id="legend-biological" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: rgb(240, 240, 240); box-shadow: 0 0 6px rgb(240, 240, 240); transition: var(--transition-smooth);"></span>
               <span style="color: var(--text-secondary);">Specimen Rot</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
@@ -341,19 +341,10 @@
           <select id="select-visual-theme" class="premium-select" style="width: 100%; background: rgba(16, 16, 21, 0.85); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px 10px; font-family: var(--font-mono); font-size: 0.65rem; border-radius: 4px; outline: none; cursor: pointer; transition: var(--transition-smooth);" title="Choose color scheme mapping for spectral stain">
             <option value="xray" selected>Fluorophore X-Ray (Cybernetic Neon)</option>
             <option value="naturalism">Naturalist Color Theory (Original Organic)</option>
-            <option value="wadaSoft">Wada Soft (Japanese Mineral Theory)</option>
-            <option value="wadaSharp">Wada Sharp (Japanese Imperial Theory)</option>
             <option value="rothkoTension">Isoluminant Tension (Rothko / Wada Theory)</option>
-            <option value="fukinsei">Fukinsei Asymmetry (Zen / Rothko Theory)</option>
-            <option value="kasaneNioi">Heian Kasane (Matsushige/Hagi Asymmetric seasonal)</option>
-            <option value="atmosphericDecay">Atmospheric Decay (Bokashi Landscape)</option>
-            <option value="thangkaFive">Tibetan Thangka (Pancha-varna Primaries)</option>
-            <option value="silkBrocade">Zhuanghua Silk Brocade (Triadic Halo System)</option>
-            <option value="dualKasane">Woven Kasane (Interleaved Value Ramps)</option>
             <option value="morandiCluster">Morandi Cluster (Bleached Mid-tone Voids)</option>
-            <option value="saturatedField">Fauvist Lacquerwork (Matisse Saturated Field)</option>
+            <option value="thangkaFive">Tibetan Thangka (Pancha-varna Primaries)</option>
             <option value="sacredVestment">Liturgical Vestment (Byzantine Gold/Crimson)</option>
-            <option value="analogousDrift">Sorolla Drift (Analogous Temp Shimmer)</option>
           </select>
         </div>
 
