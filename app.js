@@ -5,7 +5,8 @@ let canvas;
 let activeArtwork = 'basquiat';
 let activeCycle = 'freeport'; // 'freeport' | 'penthouse' | 'museum' | 'catastrophe'
 let renderMode = 'visible'; // Visible mode always active in Unified Vitrine
-let timeScale = 1; // 1 = normal, 30 = accelerated
+let timeScale = 100; // 1 = normal, 100 = accelerated
+let currentRunSpeed = 100; // Decouples play/pause from speed scale
 
 // Diagnostic UI Elements
 let barMechanical, barChemical, barBiological;
@@ -743,13 +744,23 @@ function setup() {
     lblStain.style.color = "var(--accent-green)";
   }
   
-  // Default to 100x acceleration
+  // Default to 100x running speed on load
   timeScale = 100;
+  currentRunSpeed = 100;
+  
+  const playPauseBtn = document.getElementById('btn-play-pause');
+  if (playPauseBtn) {
+    playPauseBtn.innerHTML = "⏸ PAUSE CLOCK";
+    playPauseBtn.style.color = "var(--accent-red)";
+    playPauseBtn.style.borderColor = "rgba(255, 56, 56, 0.3)";
+    playPauseBtn.style.background = "rgba(255, 56, 56, 0.15)";
+  }
+  
   const btnToggle = document.getElementById('btn-toggle-time');
   if (btnToggle) {
-    btnToggle.innerText = "Pause Clock";
-    btnToggle.style.color = "var(--accent-red)";
-    btnToggle.style.borderColor = "rgba(255, 56, 56, 0.3)";
+    btnToggle.innerText = "Speed: 100x";
+    btnToggle.style.color = "";
+    btnToggle.style.borderColor = "";
   }
   
   // Prevent default context menu on canvas
@@ -807,7 +818,11 @@ function initUIElements() {
   document.getElementById('btn-moisture-mode').addEventListener('click', (e) => setRenderMode('moisture', e.currentTarget));
   
   // Simulation admin controls
-  document.getElementById('btn-toggle-time').addEventListener('click', toggleTimeScale);
+  const playPauseBtn = document.getElementById('btn-play-pause');
+  if (playPauseBtn) {
+    playPauseBtn.addEventListener('click', togglePlayPause);
+  }
+  document.getElementById('btn-toggle-time').addEventListener('click', toggleSpeed);
   document.getElementById('btn-reset').addEventListener('click', resetSimulation);
   
   // Visual Stain Theme selector listener
@@ -3116,29 +3131,50 @@ function setRenderMode(mode, targetBtn) {
   targetBtn.classList.add('active');
 }
 
-function toggleTimeScale() {
-  const btn = document.getElementById('btn-toggle-time');
-  if (!btn) return;
+function togglePlayPause() {
+  const playPauseBtn = document.getElementById('btn-play-pause');
+  if (!playPauseBtn) return;
   
   if (timeScale > 0) {
-    // Save current active speed so we can restore it when resuming
-    btn.setAttribute('data-prev-speed', timeScale);
+    // PAUSE
+    currentRunSpeed = timeScale; // save the current active speed
     timeScale = 0;
-    btn.innerText = "Run Simulation";
-    btn.style.color = "var(--accent-green)";
-    btn.style.borderColor = "rgba(46, 204, 113, 0.3)";
+    
+    playPauseBtn.innerHTML = "▶ RUN SIMULATION";
+    playPauseBtn.style.color = "var(--accent-green)";
+    playPauseBtn.style.borderColor = "rgba(46, 204, 113, 0.3)";
+    playPauseBtn.style.background = "rgba(46, 204, 113, 0.15)";
   } else {
-    // Restore previous speed or default to 100
-    let prevSpeed = parseInt(btn.getAttribute('data-prev-speed')) || 100;
-    timeScale = prevSpeed;
-    btn.innerText = "Pause Clock";
-    btn.style.color = "var(--accent-red)";
-    btn.style.borderColor = "rgba(255, 56, 56, 0.3)";
+    // PLAY
+    timeScale = currentRunSpeed;
+    
+    playPauseBtn.innerHTML = "⏸ PAUSE CLOCK";
+    playPauseBtn.style.color = "var(--accent-red)";
+    playPauseBtn.style.borderColor = "rgba(255, 56, 56, 0.3)";
+    playPauseBtn.style.background = "rgba(255, 56, 56, 0.15)";
     
     // If we were viewing a historical snapshot, start the live simulation RUNNING from this snapshot!
     if (isViewingSnapshot) {
       startLiveSimulationFromCurrentState();
     }
+  }
+}
+
+function toggleSpeed() {
+  const btn = document.getElementById('btn-toggle-time');
+  if (!btn) return;
+  
+  if (currentRunSpeed === 100) {
+    currentRunSpeed = 1;
+    btn.innerText = "Speed: 1x";
+  } else {
+    currentRunSpeed = 100;
+    btn.innerText = "Speed: 100x";
+  }
+  
+  // If actively running, update the active timeScale immediately!
+  if (timeScale > 0) {
+    timeScale = currentRunSpeed;
   }
 }
 
@@ -3369,11 +3405,12 @@ function goToMilestone(index) {
   // Freeze the simulation timer when viewing a static forensic milestone,
   // showing a clean green "Run Simulation" button to resume from this state!
   timeScale = 0;
-  const btnToggle = document.getElementById('btn-toggle-time');
-  if (btnToggle) {
-    btnToggle.innerText = "Run Simulation";
-    btnToggle.style.color = "var(--accent-green)";
-    btnToggle.style.borderColor = "rgba(46, 204, 113, 0.3)";
+  const playPauseBtn = document.getElementById('btn-play-pause');
+  if (playPauseBtn) {
+    playPauseBtn.innerHTML = "▶ RUN SIMULATION";
+    playPauseBtn.style.color = "var(--accent-green)";
+    playPauseBtn.style.borderColor = "rgba(46, 204, 113, 0.3)";
+    playPauseBtn.style.background = "rgba(46, 204, 113, 0.15)";
   }
   
   const m = milestones[activeArtwork][activeCycle][index];
@@ -3423,6 +3460,15 @@ function startLiveSimulationFromCurrentState() {
   updateAssetMetrics();
   updateTimelineHUD();
   
+  // Enforce running state button style
+  const playPauseBtn = document.getElementById('btn-play-pause');
+  if (playPauseBtn) {
+    playPauseBtn.innerHTML = "⏸ PAUSE CLOCK";
+    playPauseBtn.style.color = "var(--accent-red)";
+    playPauseBtn.style.borderColor = "rgba(255, 56, 56, 0.3)";
+    playPauseBtn.style.background = "rgba(255, 56, 56, 0.15)";
+  }
+  
   // Append milestone specific analysis note
   let liveHTML = `<div class='milestone-note' style='margin-top: 10px; padding: 8px; background: rgba(46, 204, 113, 0.05); border: 1px solid rgba(46, 204, 113, 0.2); border-radius: 4px; font-size: 0.68rem; line-height: 1.3;'>
     <span style='color: var(--accent-green); font-family: var(--font-mono); font-weight: 600; display: block; margin-bottom: 2px;'>[Simulation Resumed from Milestone]</span>
@@ -3450,18 +3496,27 @@ function returnToLiveSimulation() {
   updateAssetMetrics();
   updateTimelineHUD();
   
-  // Restore button text to correct state based on timeScale
+  // Restore play/pause button state based on timeScale
+  const playPauseBtn = document.getElementById('btn-play-pause');
+  if (playPauseBtn) {
+    if (timeScale > 0) {
+      playPauseBtn.innerHTML = "⏸ PAUSE CLOCK";
+      playPauseBtn.style.color = "var(--accent-red)";
+      playPauseBtn.style.borderColor = "rgba(255, 56, 56, 0.3)";
+      playPauseBtn.style.background = "rgba(255, 56, 56, 0.15)";
+    } else {
+      playPauseBtn.innerHTML = "▶ RUN SIMULATION";
+      playPauseBtn.style.color = "var(--accent-green)";
+      playPauseBtn.style.borderColor = "rgba(46, 204, 113, 0.3)";
+      playPauseBtn.style.background = "rgba(46, 204, 113, 0.15)";
+    }
+  }
+  
   const btnToggle = document.getElementById('btn-toggle-time');
   if (btnToggle) {
-    if (timeScale > 0) {
-      btnToggle.innerText = "Pause Clock";
-      btnToggle.style.color = "var(--accent-red)";
-      btnToggle.style.borderColor = "rgba(255, 56, 56, 0.3)";
-    } else {
-      btnToggle.innerText = "Run Simulation";
-      btnToggle.style.color = "var(--accent-green)";
-      btnToggle.style.borderColor = "rgba(46, 204, 113, 0.3)";
-    }
+    btnToggle.innerText = "Speed: " + currentRunSpeed + "x";
+    btnToggle.style.color = "";
+    btnToggle.style.borderColor = "";
   }
   
   // Append milestone specific analysis note
